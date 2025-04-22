@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
+using TANE.Skabelon.Api.Models;
 
 namespace TANE.Skabelon.Api.Context
 {
@@ -22,12 +22,12 @@ namespace TANE.Skabelon.Api.Context
                         .WithRequired(t => t.RejseplanSkabelon)
                         .HasForeignKey(t => t.RejseplanSkabelonId);
 
-            modelBuilder.Entity<Turskabelon>()
+            modelBuilder.Entity<TurSkabelon>()
                         .HasMany(t => t.DagSkabeloner)
                         .WithRequired(d => d.TurSkabelon)
                         .HasForeignKey(t => t.TurSkabelonId);
 
-            base.OnModelCreating(modelbuilder);
+            base.OnModelCreating(modelBuilder);
         }
     }
 }
