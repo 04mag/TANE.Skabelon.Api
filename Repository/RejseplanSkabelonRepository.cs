@@ -1,6 +1,6 @@
 ﻿using TANE.Skabelon.Api.Context;
 using TANE.Skabelon.Api.Models;
-using TANE.Skabelon.Api.Repository;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace TANE.Skabelon.Api.Repository
@@ -21,32 +21,36 @@ namespace TANE.Skabelon.Api.Repository
         {
             return await _context.RejseplanSkabeloner.FindAsync(id);
         }
-        public async Task AddRejseplanSkabelonerAsync(RejseplanSkabelonModel rejseplanSkabelon)
+        public async Task<RejseplanSkabelonModel> AddRejseplanSkabelonerAsync(RejseplanSkabelonModel rejseplanSkabelon)
         {
-            await _context.RejseplanSkabeloner.AddAsync(rejseplanSkabelon);
+            var result = await _context.RejseplanSkabeloner.AddAsync(rejseplanSkabelon);
             await _context.SaveChangesAsync();
+            return result.Entity;
         }
-        public async Task UpdateRejseplanerAsync(RejseplanSkabelonModel rejseplanSkabelon)
+        public async Task<RejseplanSkabelonModel> UpdateRejseplanerAsync(RejseplanSkabelonModel rejseplanSkabelon)
         {
             try
             {
-                _context.RejseplanSkabeloner.Update(rejseplanSkabelon);
+                var result = _context.RejseplanSkabeloner.Update(rejseplanSkabelon);
                 await _context.SaveChangesAsync();
+                return result.Entity;
             }
             catch (DbUpdateConcurrencyException)
             {
-                throw new DbUpdateConcurrencyException("Kunden blev ændret af en anden, genlæs siden og prøv igen.");
+                throw new DbUpdateConcurrencyException("Kunden blev ændret af en anden, genlæs siden o+g prøv igen.");
             }
         }
 
-        public async Task DeleteRejseplanerSkabelonerAsync(int id)
+        public async Task<bool> DeleteRejseplanerSkabelonerAsync(int id)
         {
             var rejseplanSkabelon = await GetRejseplanSkabelonerByIdAsync(id);
             if (rejseplanSkabelon != null)
             {
                 _context.RejseplanSkabeloner.Remove(rejseplanSkabelon);
                 await _context.SaveChangesAsync();
+                return true;
             }
+            return false;
         }
 
     }

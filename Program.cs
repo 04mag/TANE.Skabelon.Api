@@ -1,5 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
+using TANE.Skabelon.Api.Repository;
+using TANE.Skabelon.Api.Context;
+
 
 namespace TANE.Skabelon.Api
 {
@@ -26,7 +29,7 @@ namespace TANE.Skabelon.Api
             }
 
             // Add repository
-            builder.Services.AddScoped<ISkabelonRepository, SkabelonRepository>();
+            builder.Services.AddScoped<IRejseplanSkabelonRepository, RejseplanSkabelonRepository>();
 
             // Add controllers
             builder.Services.AddControllers();
