@@ -7,9 +7,9 @@ namespace TANE.Skabelon.Api.Context
     {
         public SkabelonDbContext(DbContextOptions<SkabelonDbContext> options) : base(options) { }
         
-        public DbSet<RejseplanSkabelon> RejsePlaner { get; set;  }
-        public DbSet<TurSkabelon> TurSkabeloner { get; set; }
-        public DbSet<DagSkabelon> DagSkabeloner { get; set; }
+        public DbSet<RejseplanSkabelonModel> RejseplanSkabeloner { get; set;  }
+        public DbSet<TurSkabelonModel> TurSkabeloner { get; set; }
+        public DbSet<DagSkabelonModel> DagSkabeloner { get; set; }
 
 
         // Configuration of DbContext 
@@ -17,12 +17,12 @@ namespace TANE.Skabelon.Api.Context
         {
 
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<RejseplanSkabelon>()
+            modelBuilder.Entity<RejseplanSkabelonModel>()
                         .HasMany(r => r.TurSkabeloner)
                         .WithRequired(t => t.RejseplanSkabelon)
                         .HasForeignKey(t => t.RejseplanSkabelonId);
 
-            modelBuilder.Entity<TurSkabelon>()
+            modelBuilder.Entity<TurSkabelonModel>()
                         .HasMany(t => t.DagSkabeloner)
                         .WithRequired(d => d.TurSkabelon)
                         .HasForeignKey(t => t.TurSkabelonId);

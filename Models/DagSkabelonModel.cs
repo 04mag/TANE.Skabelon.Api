@@ -2,7 +2,7 @@
 
 namespace TANE.Skabelon.Api.Models
 {
-    public class DagSkabelon
+    public class DagSkabelonModel
     {
 
         public int Id { get; set; }
@@ -19,7 +19,7 @@ namespace TANE.Skabelon.Api.Models
 
         // Fremmednøgle
         public int TurSkabelonId { get; set; }
-        public virtual TurSkabelon TurSkabelon { get; set; }
+        public virtual TurSkabelonModel TurSkabelon { get; set; }
 
         [Timestamp]
         public byte[] RowVersion { get; set; }

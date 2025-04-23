@@ -2,7 +2,7 @@
 
 namespace TANE.Skabelon.Api.Models
 {
-    public class RejseplanSkabelon
+    public class RejseplanSkabelonModel
     {
         public int Id { get; set; }
 
@@ -10,7 +10,7 @@ namespace TANE.Skabelon.Api.Models
         public int AntalDage { get; set; }
 
         // Relation til ture
-        public virtual ICollection<TurSkabelon> TurSkabeloner { get; set; }
+        public virtual ICollection<TurSkabelonModel> TurSkabeloner { get; set; }
 
         // Concurrency token
         [Timestamp]
