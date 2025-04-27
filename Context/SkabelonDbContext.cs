@@ -26,6 +26,10 @@ namespace TANE.Skabelon.Api.Context
                         .HasMany(t => t.DagSkabeloner)
                         .WithRequired(d => d.TurSkabelon)
                         .HasForeignKey(t => t.TurSkabelonId);
+            modelBuilder.Entity<TurSkabelonModel>()
+            .Property(t => t.RowVersion)
+                .IsRowVersion();
+
 
             base.OnModelCreating(modelBuilder);
         }

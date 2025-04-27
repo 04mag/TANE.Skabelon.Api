@@ -5,8 +5,7 @@ using TANE.Skabelon.Api.Repository;
 
 namespace TANE.Skabelon.Api.Controllers
 {
-    public class RejseplanSkabelonController
-    {
+    
         [Route("api/[controller]")]
         [ApiController]
         public class RejseplanSkabelonController : ControllerBase
@@ -71,4 +70,3 @@ namespace TANE.Skabelon.Api.Controllers
 
         }
     }
-}

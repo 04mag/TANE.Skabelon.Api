@@ -37,13 +37,13 @@ namespace TANE.Skabelon.Api.Repository
             }
             catch (DbUpdateConcurrencyException)
             {
-                throw new DbUpdateConcurrencyException("Kunden blev ændret af en anden, genlæs siden o+g prøv igen.");
+                throw new DbUpdateConcurrencyException("Kunden blev ændret af en anden bruger");
             }
         }
 
         public async Task<bool> DeleteRejseplanerSkabelonerAsync(int id)
         {
-            var rejseplanSkabelon = await GetRejseplanSkabelonerByIdAsync(id);
+            var rejseplanSkabelon = await GetRejseplanSkabelonerIdAsync(id);
             if (rejseplanSkabelon != null)
             {
                 _context.RejseplanSkabeloner.Remove(rejseplanSkabelon);

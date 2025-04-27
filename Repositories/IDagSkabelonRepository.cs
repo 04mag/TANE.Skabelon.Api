@@ -1,5 +1,6 @@
 ﻿using TANE.Skabelon.Api.Models;
 
+
 namespace TANE.Skabelon.Api.Repository
 {
     public interface IDagSkabelonRepository
