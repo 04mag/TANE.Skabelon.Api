@@ -23,9 +23,9 @@ namespace TANE.Skabelon.Api.Context
                 .IsRequired();
 
            
-            modelBuilder.Entity<TurSkabelonModel>()
-                .HasMany(t => t.DagSkabeloner)
-                .WithOne(d => d.TurSkabelon) 
+            modelBuilder.Entity<DagSkabelonModel>()
+                .HasOne(d => d.TurSkabelon)
+                .WithMany(t => t.DagSkabeloner) 
                 .HasForeignKey(d => d.TurSkabelonId)
                 .IsRequired();
 

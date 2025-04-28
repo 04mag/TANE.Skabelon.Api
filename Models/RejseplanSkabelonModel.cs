@@ -2,7 +2,7 @@
 
 namespace TANE.Skabelon.Api.Models
 {
-    public class RejseplanSkabelonModel
+    public class RejseplanSkabelonModel : BaseEntity
     {
         public int Id { get; set; }
 
@@ -16,13 +16,6 @@ namespace TANE.Skabelon.Api.Models
         [Timestamp]
         public byte[] RowVersion { get; set; }
 
-        
-        public decimal GetTotalPris()
-        {
-            decimal sum = 0;
-            foreach (var tur in TurSkabeloner)
-                sum += tur.GetTotalPris();
-            return sum;
-        }
+
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TANE.Skabelon.Api.Models
 {
-    public class DagSkabelonModel
+    public class DagSkabelonModel : BaseEntity
     {
 
         public int Id { get; set; }
