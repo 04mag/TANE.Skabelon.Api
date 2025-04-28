@@ -3,6 +3,7 @@ using TANE.Skabelon.Api.Context;
 using TANE.Skabelon.Api.Models;
 
 
+
 namespace TANE.Skabelon.Api.Repositories
 {
     public class DagSkabelonRepository : IDagSkabelonRepository
@@ -16,28 +17,28 @@ namespace TANE.Skabelon.Api.Repositories
 
         public async Task<List<DagSkabelonModel>> GetAllDagSkabelonerAsync()
         {
-            return await _context.DagSkabeloner.ToListAsync();
+            return await _context.DagSkabelon.ToListAsync();
         }
 
-        public async Task<TurSkabelonModel> GetDagSkabelonerIdAsync(int id)
+        public async Task<DagSkabelonModel> GetDagSkabelonByIdAsync(int id)
         {
-            return await _context.DagSkabeloner.FindAsync(id);
+            return await _context.DagSkabelon.FindAsync(id);
         }
 
-        public async Task <TurSkabelonModel> AddDagSkabelonerAsync(TurSkabelonModel dagSkabelonModel)
+        public async Task<DagSkabelonModel> AddDagSkabelonAsync(DagSkabelonModel dagSkabelon)
         {
             {
-                var result = await _context.DagSkabeloner.AddAsync(dagSkabelonModel);
+                var result = await _context.DagSkabelon.AddAsync(dagSkabelon);
                 await _context.SaveChangesAsync();
                 return result.Entity;
             }
         }
 
-        public async Task<TurSkabelonModel> UpdateDagskabelonerAsync(TurSkabelonModel dagSkabelon)
+        public async Task<DagSkabelonModel> UpdateDagSkabelonAsync(DagSkabelonModel dagSkabelon)
         {
             try
             {
-                var result = _context.DagSkabeloner.Update(dagSkabelon);
+                var result = _context.DagSkabelon.Update(dagSkabelon);
                 await _context.SaveChangesAsync();
                 return result.Entity;
             }
@@ -47,12 +48,12 @@ namespace TANE.Skabelon.Api.Repositories
             }
         }
 
-        public async Task<bool> DeleteDagSkabelonerAsync(int id)
+        public async Task<bool> DeleteDagSkabelonAsync(int id)
         {
-            var dagSkabelon = await GetDagSkabelonerIdAsync(id);
+            var dagSkabelon = await GetDagSkabelonByIdAsync(id);
             if (dagSkabelon != null)
             {
-                _context.DagSkabeloner.Remove(dagSkabelon);
+                _context.DagSkabelon.Remove(dagSkabelon);
                 await _context.SaveChangesAsync();
                 return true;
             }

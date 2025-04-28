@@ -15,23 +15,23 @@ namespace TANE.Skabelon.Api.Repository
 
         public async Task<List<RejseplanSkabelonModel>> GetAllRejseplanSkabelonerAsync()
         {
-            return await _context.RejseplanSkabeloner.ToListAsync();
+            return await _context.RejseplanSkabelon.ToListAsync();
         }
-        public async Task<RejseplanSkabelonModel> GetRejseplanSkabelonerIdAsync(int id)
+        public async Task<RejseplanSkabelonModel> GetRejseplanSkabelonByIdAsync(int id)
         {
-            return await _context.RejseplanSkabeloner.FindAsync(id);
+            return await _context.RejseplanSkabelon.FindAsync(id);
         }
-        public async Task<RejseplanSkabelonModel> AddRejseplanSkabelonerAsync(RejseplanSkabelonModel rejseplanSkabelon)
+        public async Task<RejseplanSkabelonModel> AddRejseplanSkabelonAsync(RejseplanSkabelonModel rejseplanSkabelon)
         {
-            var result = await _context.RejseplanSkabeloner.AddAsync(rejseplanSkabelon);
+            var result = await _context.RejseplanSkabelon.AddAsync(rejseplanSkabelon);
             await _context.SaveChangesAsync();
             return result.Entity;
         }
-        public async Task<RejseplanSkabelonModel> UpdateRejseplanerAsync(RejseplanSkabelonModel rejseplanSkabelon)
+        public async Task<RejseplanSkabelonModel> UpdateRejseplanSkabelonAsync(RejseplanSkabelonModel rejseplanSkabelon)
         {
             try
             {
-                var result = _context.RejseplanSkabeloner.Update(rejseplanSkabelon);
+                var result = _context.RejseplanSkabelon.Update(rejseplanSkabelon);
                 await _context.SaveChangesAsync();
                 return result.Entity;
             }
@@ -41,12 +41,12 @@ namespace TANE.Skabelon.Api.Repository
             }
         }
 
-        public async Task<bool> DeleteRejseplanerSkabelonerAsync(int id)
+        public async Task<bool> DeleteRejseplanSkabelonAsync(int id)
         {
-            var rejseplanSkabelon = await GetRejseplanSkabelonerIdAsync(id);
+            var rejseplanSkabelon = await GetRejseplanSkabelonByIdAsync(id);
             if (rejseplanSkabelon != null)
             {
-                _context.RejseplanSkabeloner.Remove(rejseplanSkabelon);
+                _context.RejseplanSkabelon.Remove(rejseplanSkabelon);
                 await _context.SaveChangesAsync();
                 return true;
             }

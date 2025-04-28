@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
+using TANE.Skabelon.Api.Repositories;
 using TANE.Skabelon.Api.Repository;
 
 namespace TANE.Skabelon.Api.Controllers
 {
-    
         [Route("api/[controller]")]
         [ApiController]
         public class RejseplanSkabelonController : ControllerBase
@@ -20,17 +20,17 @@ namespace TANE.Skabelon.Api.Controllers
             [HttpGet("read")]
             public async Task<ActionResult<List<RejseplanSkabelonModel>>> GetAll()
             {
-                var rejseplanSkabeloner = await _rejseplanSkabelonRepository.GetAllRejseplanSkabelonerAsync();
-                return Ok(rejseplanSkabeloner);
+                var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetAllRejseplanSkabelonerAsync();
+                return Ok(rejseplanSkabelon);
             }
 
             [HttpGet("{id}")]
             public async Task<ActionResult<RejseplanSkabelonModel>> GetById(int id)
             {
-                var rejseplanSkabeloner = await _rejseplanSkabelonRepository.GetRejseplanSkabelonerByIdAsync(id);
-                if (rejseplanSkabeloner == null)
+                var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetRejseplanSkabelonByIdAsync(id);
+                if (rejseplanSkabelon == null)
                     return NotFound();
-                return Ok(rejseplanSkabeloner);
+                return Ok(rejseplanSkabelon);
             }
 
             [HttpPost("create")]
@@ -38,7 +38,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
-                await _rejseplanSkabelonRepository.AddRejseplanSkabelonerAsync(rejseplanSkabelon);
+                await _rejseplanSkabelonRepository.AddRejseplanSkabelonAsync(rejseplanSkabelon);
                 return Ok();
             }
 
@@ -50,7 +50,7 @@ namespace TANE.Skabelon.Api.Controllers
 
                 try
                 {
-                    await _rejseplanSkabelonRepository.UpdateRejseplanSkabelonerAsync(rejseplanSkabelon);
+                    await _rejseplanSkabelonRepository.UpdateRejseplanSkabelonAsync(rejseplanSkabelon);
                     return Ok();
                 }
 

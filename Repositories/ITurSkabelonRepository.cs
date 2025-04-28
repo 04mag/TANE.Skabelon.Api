@@ -1,14 +1,14 @@
 ﻿using TANE.Skabelon.Api.Models;
 
-namespace TANE.Skabelon.Api.Repository
+namespace TANE.Skabelon.Api.Repositories
 {
     public interface ITurSkabelonRepository
     {
         Task<List<TurSkabelonModel>> GetAllTurSkabelonerAsync();
-        Task<TurSkabelonModel> TurSkabelonerByIdAsync(int id);
-        Task AddTurSkabelonerAsync(TurSkabelonModel turSkabelonModel);
-        Task UpdateTurSkabelonerAsync(TurSkabelonModel turSkabelonModel);
-        Task DeleteTurSkabelonAsync(int id);
+        Task<TurSkabelonModel> GetTurSkabelonByIdAsync(int id);
+        Task<TurSkabelonModel> AddTurSkabelonAsync(TurSkabelonModel turSkabelon);
+        Task<TurSkabelonModel> UpdateTurSkabelonAsync(TurSkabelonModel turSkabelon);
+        Task<bool> DeleteTurSkabelonAsync(int id);
 
     }
 }

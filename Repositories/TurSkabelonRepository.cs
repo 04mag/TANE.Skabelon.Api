@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 
 
-namespace TANE.Skabelon.Api.Repository
+namespace TANE.Skabelon.Api.Repositories
 {
     public class TurSkabelonRepository : ITurSkabelonRepository
     {
@@ -17,28 +17,28 @@ namespace TANE.Skabelon.Api.Repository
 
         public async Task<List<TurSkabelonModel>> GetAllTurSkabelonerAsync()
         {
-            return await _context.TurSkabeloner.ToListAsync();
+            return await _context.TurSkabelon.ToListAsync();
         }
 
-        public async Task<TurSkabelonModel> GetTurSkabelonerIdAsync(int id)
+        public async Task<TurSkabelonModel> GetTurSkabelonByIdAsync(int id)
         {
-            return await _context.TurSkabeloner.FindAsync(id);
+            return await _context.TurSkabelon.FindAsync(id);
         }
 
-        public async Task<TurSkabelonModel> AddTurSkabelonerAsync(TurSkabelonModel turSkabelonModel)
+        public async Task<TurSkabelonModel> AddTurSkabelonAsync(TurSkabelonModel turSkabelon)
         {
             {
-                var result = await _context.TurSkabeloner.AddAsync(turSkabelonModel);
+                var result = await _context.TurSkabelon.AddAsync(turSkabelon);
                 await _context.SaveChangesAsync();
                 return result.Entity;
             }
         }
 
-        public async Task<TurSkabelonModel> UpdateTurskabelonerAsync(TurSkabelonModel turSkabelon)
+        public async Task<TurSkabelonModel> UpdateTurSkabelonAsync(TurSkabelonModel turSkabelon)
         {
             try
             {
-                var result = _context.TurSkabeloner.Update(turSkabelon);
+                var result = _context.TurSkabelon.Update(turSkabelon);
                 await _context.SaveChangesAsync();
                 return result.Entity;
             }
@@ -48,12 +48,12 @@ namespace TANE.Skabelon.Api.Repository
             }
         }
 
-        public async Task<bool> DeleteTurSkabelonerAsync(int id)
+        public async Task<bool> DeleteTurSkabelonAsync(int id)
         {
-            var turSkabelon = await GetTurSkabelonerIdAsync(id);
+            var turSkabelon = await GetTurSkabelonByIdAsync(id);
             if (turSkabelon != null)
             {
-                _context.TurSkabeloner.Remove(turSkabelon);
+                _context.TurSkabelon.Remove(turSkabelon);
                 await _context.SaveChangesAsync();
                 return true;
             }

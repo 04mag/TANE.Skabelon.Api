@@ -7,31 +7,40 @@ namespace TANE.Skabelon.Api.Context
     {
         public SkabelonDbContext(DbContextOptions<SkabelonDbContext> options) : base(options) { }
         
-        public DbSet<RejseplanSkabelonModel> RejseplanSkabeloner { get; set;  }
-        public DbSet<TurSkabelonModel> TurSkabeloner { get; set; }
-        public DbSet<DagSkabelonModel> DagSkabeloner { get; set; }
+        public DbSet<RejseplanSkabelonModel> RejseplanSkabelon { get; set;  }
+        public DbSet<TurSkabelonModel> TurSkabelon { get; set; }
+        public DbSet<DagSkabelonModel> DagSkabelon { get; set; }
 
 
         // Configuration of DbContext 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
-            base.OnModelCreating(modelBuilder);
+            
             modelBuilder.Entity<RejseplanSkabelonModel>()
-                        .HasMany(r => r.TurSkabeloner)
-                        .WithRequired(t => t.RejseplanSkabelon)
-                        .HasForeignKey(t => t.RejseplanSkabelonId);
+                .HasMany(r => r.TurSkabeloner)
+                .WithOne(t => t.RejseplanSkabelon) 
+                .HasForeignKey(t => t.RejseplanSkabelonId)
+                .IsRequired();
 
+           
             modelBuilder.Entity<TurSkabelonModel>()
-                        .HasMany(t => t.DagSkabeloner)
-                        .WithRequired(d => d.TurSkabelon)
-                        .HasForeignKey(t => t.TurSkabelonId);
-            modelBuilder.Entity<TurSkabelonModel>()
-            .Property(t => t.RowVersion)
+                .HasMany(t => t.DagSkabeloner)
+                .WithOne(d => d.TurSkabelon) 
+                .HasForeignKey(d => d.TurSkabelonId)
+                .IsRequired();
+
+            // Concurrency-token som rowversion
+            modelBuilder.Entity<RejseplanSkabelonModel>()
+                .Property(r => r.RowVersion)
                 .IsRowVersion();
 
+            modelBuilder.Entity<TurSkabelonModel>()
+                .Property(t => t.RowVersion)
+                .IsRowVersion();
 
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<DagSkabelonModel>()
+                .Property(d => d.RowVersion)
+                .IsRowVersion();
         }
     }
 }

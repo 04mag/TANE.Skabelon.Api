@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
-using TANE.Skabelon.Api.Repository;
+using TANE.Skabelon.Api.Repositories;
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -9,7 +9,7 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class DagSkabelonController : ControllerBase
     {
-        private readonly DagSkabelonRepository _dagSkabelonRepository;
+        private readonly IDagSkabelonRepository _dagSkabelonRepository;
 
         public DagSkabelonController(IDagSkabelonRepository dagSkabelonRepository)
         {
@@ -26,7 +26,7 @@ namespace TANE.Skabelon.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<DagSkabelonModel>> GetById(int id)
         {
-            var dagSkabeloner = await _dagSkabelonRepository.GetDagSkabelonerByIdAsync(id);
+            var dagSkabeloner = await _dagSkabelonRepository.GetDagSkabelonByIdAsync(id);
             if (dagSkabeloner == null)
                 return NotFound();
             return Ok(dagSkabeloner);
@@ -37,7 +37,7 @@ namespace TANE.Skabelon.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            await _dagSkabelonRepository.AddDagSkabelonerAsync(dagSkabelon);
+            await _dagSkabelonRepository.AddDagSkabelonAsync(dagSkabelon);
             return Ok();
         }
 
@@ -49,7 +49,7 @@ namespace TANE.Skabelon.Api.Controllers
 
             try
             {
-                await _dagSkabelonRepository.UpdateDagSkabelonerAsync(dagSkabelon);
+                await _dagSkabelonRepository.UpdateDagSkabelonAsync(dagSkabelon);
                 return Ok();
             }
 
