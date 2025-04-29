@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TANE.Skabelon.Api.GenericRepositories;
 using TANE.Skabelon.Api.Models;
-using TANE.Skabelon.Api.Repositories;
+
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -9,24 +10,24 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class DagSkabelonController : ControllerBase
     {
-        private readonly IDagSkabelonRepository _dagSkabelonRepository;
+        private readonly IGenericRepository<DagSkabelonModel> _genericRepository;
 
-        public DagSkabelonController(IDagSkabelonRepository dagSkabelonRepository)
+        public DagSkabelonController(IGenericRepository<DagSkabelonModel> genericRepository)
         {
-            _dagSkabelonRepository = dagSkabelonRepository;
+            _genericRepository = genericRepository;
         }
 
         [HttpGet("read")]
         public async Task<ActionResult<List<DagSkabelonModel>>> GetAll()
         {
-            var dagSkabeloner = await _dagSkabelonRepository.GetAllDagSkabelonerAsync();
+            var dagSkabeloner = await _genericRepository.GetAllAsync();
             return Ok(dagSkabeloner);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<DagSkabelonModel>> GetById(int id)
         {
-            var dagSkabeloner = await _dagSkabelonRepository.GetDagSkabelonByIdAsync(id);
+            var dagSkabeloner = await _genericRepository.GetByIdAsync(id);
             if (dagSkabeloner == null)
                 return NotFound();
             return Ok(dagSkabeloner);
@@ -37,19 +38,19 @@ namespace TANE.Skabelon.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            await _dagSkabelonRepository.AddDagSkabelonAsync(dagSkabelon);
+            await _genericRepository.AddAsync(dagSkabelon);
             return Ok();
         }
 
         [HttpPut("update")]
         public async Task<ActionResult> Update(DagSkabelonModel dagSkabelon)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                await _dagSkabelonRepository.UpdateDagSkabelonAsync(dagSkabelon);
+                await _genericRepository.UpdateAsync(dagSkabelon);
                 return Ok();
             }
 
@@ -57,12 +58,16 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 return Conflict("Concurrency Exception");
             }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            await _dagSkabelonRepository.DeleteDagSkabelonAsync(id);
+            await _genericRepository.DeleteAsync(id);
             return Ok();
         }
 

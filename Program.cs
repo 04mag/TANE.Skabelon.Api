@@ -1,9 +1,8 @@
 
 using Microsoft.EntityFrameworkCore;
-using TANE.Skabelon.Api.Repositories;
 using TANE.Skabelon.Api.GenericRepositories;
 using TANE.Skabelon.Api.Context;
-using TANE.Skabelon.Api.Repository;
+
 
 
 namespace TANE.Skabelon.Api
@@ -36,9 +35,7 @@ namespace TANE.Skabelon.Api
             // Add repositories
             //var conn = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            builder.Services.AddScoped<IDagSkabelonRepository, DagSkabelonRepository>();
-            builder.Services.AddScoped<ITurSkabelonRepository, TurSkabelonRepository>();
-            builder.Services.AddScoped<IRejseplanSkabelonRepository, RejseplanSkabelonRepository>();
+           
 
             // Add controllers
             builder.Services.AddControllers();

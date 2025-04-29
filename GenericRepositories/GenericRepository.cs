@@ -46,7 +46,7 @@ namespace TANE.Skabelon.Api.GenericRepositories
 
         public async Task<T?> GetByIdAsync(int id)
         {
-            return await _dbSet.FindAsync();
+            return await _dbSet.FindAsync(id);
         }
 
         public async Task UpdateAsync(T entity)

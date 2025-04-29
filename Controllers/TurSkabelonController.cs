@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
-using TANE.Skabelon.Api.Repositories;
+using TANE.Skabelon.Api.GenericRepositories;
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -10,24 +10,24 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class TurSkabelonController : ControllerBase
     {
-        private readonly ITurSkabelonRepository _turSkabelonRepository;
+        private readonly IGenericRepository<TurSkabelonModel> _genericRepository;
 
-        public TurSkabelonController(ITurSkabelonRepository turSkabelonRepository)
+        public TurSkabelonController(IGenericRepository<TurSkabelonModel> genericRepository)
         {
-            _turSkabelonRepository = turSkabelonRepository;
+            _genericRepository = genericRepository;
         }
 
         [HttpGet("read")]
         public async Task<ActionResult<List<TurSkabelonModel>>> GetAll()
         {
-            var turSkabeloner = await _turSkabelonRepository.GetAllTurSkabelonerAsync();
+            var turSkabeloner = await _genericRepository.GetAllAsync();
             return Ok(turSkabeloner);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<TurSkabelonModel>> GetById(int id)
         {
-            var turSkabeloner = await _turSkabelonRepository.GetTurSkabelonByIdAsync(id);
+            var turSkabeloner = await _genericRepository.GetByIdAsync(id);
             if (turSkabeloner == null)
                 return NotFound();
             return Ok(turSkabeloner);
@@ -38,7 +38,7 @@ namespace TANE.Skabelon.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            await _turSkabelonRepository.AddTurSkabelonAsync(turSkabelon);
+            await _genericRepository.AddAsync(turSkabelon);
             return Ok();
         }
 
@@ -50,7 +50,7 @@ namespace TANE.Skabelon.Api.Controllers
 
             try
             {
-                await _turSkabelonRepository.UpdateTurSkabelonAsync(turSkabelon);
+                await _genericRepository.UpdateAsync(turSkabelon);
                 return Ok();
             }
 
@@ -61,9 +61,9 @@ namespace TANE.Skabelon.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Delete(TurSkabelonModel turSkabelon)
         {
-            await _turSkabelonRepository.DeleteTurSkabelonAsync(id);
+            await _genericRepository.DeleteAsync(turSkabelon);
             return Ok();
         }
 

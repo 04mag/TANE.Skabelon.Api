@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
-using TANE.Skabelon.Api.Repositories;
-using TANE.Skabelon.Api.Repository;
+using TANE.Skabelon.Api.GenericRepositories;
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -10,24 +9,24 @@ namespace TANE.Skabelon.Api.Controllers
         [ApiController]
         public class RejseplanSkabelonController : ControllerBase
         {
-            private readonly IRejseplanSkabelonRepository _rejseplanSkabelonRepository;
+            private readonly IGenericRepository<RejseplanSkabelonModel> _genericRepository;
 
-            public RejseplanSkabelonController(IRejseplanSkabelonRepository rejseplanSkabelonRepository)
+            public RejseplanSkabelonController(IGenericRepository<RejseplanSkabelonModel> genericRepository)
             {
-                _rejseplanSkabelonRepository = rejseplanSkabelonRepository;
+                _genericRepository = genericRepository;
             }
 
             [HttpGet("read")]
             public async Task<ActionResult<List<RejseplanSkabelonModel>>> GetAll()
             {
-                var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetAllRejseplanSkabelonerAsync();
+                var rejseplanSkabelon = await _genericRepository.GetAllAsync();
                 return Ok(rejseplanSkabelon);
             }
 
             [HttpGet("{id}")]
             public async Task<ActionResult<RejseplanSkabelonModel>> GetById(int id)
             {
-                var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetRejseplanSkabelonByIdAsync(id);
+                var rejseplanSkabelon = await _genericRepository.GetByIdAsync(id);
                 if (rejseplanSkabelon == null)
                     return NotFound();
                 return Ok(rejseplanSkabelon);
@@ -38,7 +37,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
-                await _rejseplanSkabelonRepository.AddRejseplanSkabelonAsync(rejseplanSkabelon);
+                await _genericRepository.AddAsync(rejseplanSkabelon);
                 return Ok();
             }
 
@@ -50,7 +49,7 @@ namespace TANE.Skabelon.Api.Controllers
 
                 try
                 {
-                    await _rejseplanSkabelonRepository.UpdateRejseplanSkabelonAsync(rejseplanSkabelon);
+                    await _genericRepository.UpdateAsync(rejseplanSkabelon);
                     return Ok();
                 }
 
@@ -61,9 +60,9 @@ namespace TANE.Skabelon.Api.Controllers
             }
 
             [HttpDelete("{id}")]
-            public async Task <ActionResult> Delete(int id)
+            public async Task <ActionResult> Delete(RejseplanSkabelonModel rejseplanSkabelon)
             {
-                await _rejseplanSkabelonRepository.DeleteRejseplanSkabelonAsync(id);
+                await _genericRepository.DeleteAsync(rejseplanSkabelon);
                 return Ok();
             }
 
