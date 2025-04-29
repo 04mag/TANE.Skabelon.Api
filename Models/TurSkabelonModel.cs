@@ -5,18 +5,13 @@ namespace TANE.Skabelon.Api.Models
 {
     public class TurSkabelonModel : BaseEntity
     {
-        public int Id { get; set; }
-
+        
         [Required, MaxLength(100)]
         public string Titel { get; set; }
 
         public string Beskrivelse { get; set; }
 
         // Fremmednøgle og relation
-        public List<DagSkabelonModel> DagSkabeloner { get; set; }
-
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
-
+        public List<DagSkabelonModel>? DagSkabeloner { get; set; }      
     }
 }

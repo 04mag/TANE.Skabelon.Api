@@ -13,22 +13,7 @@ namespace TANE.Skabelon.Api.Context
 
 
         // Configuration of DbContext 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            
-            // Concurrency-token som rowversion
-            modelBuilder.Entity<RejseplanSkabelonModel>()
-                .Property(r => r.RowVersion)
-                .IsRowVersion();
-
-            modelBuilder.Entity<TurSkabelonModel>()
-                .Property(t => t.RowVersion)
-                .IsRowVersion();
-
-            modelBuilder.Entity<DagSkabelonModel>()
-                .Property(d => d.RowVersion)
-                .IsRowVersion();
-        }
+       
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer("Server=LocalHost;Database=TANE_Skabelon_Db;Trusted_Connection=True;Trust Server Certificate=True");

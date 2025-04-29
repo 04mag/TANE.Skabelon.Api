@@ -10,24 +10,24 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class TurSkabelonController : ControllerBase
     {
-        private readonly IGenericRepository<TurSkabelonModel> _genericRepository;
+        private readonly IGenericRepository<TurSkabelonModel> _turSkabelonRepository;
 
         public TurSkabelonController(IGenericRepository<TurSkabelonModel> genericRepository)
         {
-            _genericRepository = genericRepository;
+            _turSkabelonRepository = genericRepository;
         }
 
         [HttpGet("read")]
         public async Task<ActionResult<List<TurSkabelonModel>>> GetAll()
         {
-            var turSkabeloner = await _genericRepository.GetAllAsync();
+            var turSkabeloner = await _turSkabelonRepository.GetAllAsync();
             return Ok(turSkabeloner);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<TurSkabelonModel>> GetById(int id)
         {
-            var turSkabeloner = await _genericRepository.GetByIdAsync(id);
+            var turSkabeloner = await _turSkabelonRepository.GetByIdAsync(id);
             if (turSkabeloner == null)
                 return NotFound();
             return Ok(turSkabeloner);
@@ -38,19 +38,19 @@ namespace TANE.Skabelon.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            await _genericRepository.AddAsync(turSkabelon);
+            await _turSkabelonRepository.AddAsync(turSkabelon);
             return Ok();
         }
 
         [HttpPut("update")]
         public async Task<ActionResult> Update(TurSkabelonModel turSkabelon)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                await _genericRepository.UpdateAsync(turSkabelon);
+                await _turSkabelonRepository.UpdateAsync(turSkabelon);
                 return Ok();
             }
 
@@ -61,10 +61,26 @@ namespace TANE.Skabelon.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(TurSkabelonModel turSkabelon)
+        public async Task DeleteTurSkabelonModelAsync(int id, byte[] originalRowVersion)
         {
-            await _genericRepository.DeleteAsync(turSkabelon);
-            return Ok();
+            // 1) Find og tjek eksistens
+            var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);
+            if (turSkabelon == null)
+                throw new KeyNotFoundException($"Turskabelon med id {id} ikke fundet.");
+
+            // 2) Sæt RowVersion til det, klienten kom med
+            turSkabelon.RowVersion = originalRowVersion;
+
+            // 3) Kald repository og fang concurrency–fejl
+            try
+            {
+                await _turSkabelonRepository.DeleteAsync(turSkabelon);
+            }
+            catch (Exception)
+            {
+                throw new(
+                    $"Turskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
+            }
         }
 
 
