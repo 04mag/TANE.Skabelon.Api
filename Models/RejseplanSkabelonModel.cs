@@ -6,11 +6,8 @@ namespace TANE.Skabelon.Api.Models
     {
         public int Id { get; set; }
 
-        [Required]
-        public int AntalDage { get; set; }
-
         // Relation til ture
-        public virtual ICollection<TurSkabelonModel> TurSkabeloner { get; set; }
+        public List<TurSkabelonModel> TurSkabeloner { get; set; }
 
         // Concurrency token
         [Timestamp]

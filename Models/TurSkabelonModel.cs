@@ -13,10 +13,7 @@ namespace TANE.Skabelon.Api.Models
         public string Beskrivelse { get; set; }
 
         // Fremmednøgle og relation
-        public int RejseplanSkabelonId { get; set; }
-        public virtual RejseplanSkabelonModel RejseplanSkabelon { get; set; }
-
-        public virtual ICollection<DagSkabelonModel> DagSkabeloner { get; set; }
+        public List<DagSkabelonModel> DagSkabeloner { get; set; }
 
         [Timestamp]
         public byte[] RowVersion { get; set; }

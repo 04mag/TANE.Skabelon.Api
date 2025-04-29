@@ -18,21 +18,23 @@ namespace TANE.Skabelon.Api
                 // Add connection string og dbcontext 
                 builder.Services.AddDbContext<SkabelonDbContext>(options =>
                 {
-                    options.UseSqlServer(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection"));
-                    
-                    
-                });
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+
+            });
             }
 
             // Create datanase
             using (var scope = builder.Services.BuildServiceProvider().CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<SkabelonDbContext>();
+             
                 context.Database.EnsureCreated();
 
             }
 
             // Add repositories
+            //var conn = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IDagSkabelonRepository, DagSkabelonRepository>();
             builder.Services.AddScoped<ITurSkabelonRepository, TurSkabelonRepository>();

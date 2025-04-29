@@ -16,19 +16,6 @@ namespace TANE.Skabelon.Api.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             
-            modelBuilder.Entity<RejseplanSkabelonModel>()
-                .HasMany(r => r.TurSkabeloner)
-                .WithOne(t => t.RejseplanSkabelon) 
-                .HasForeignKey(t => t.RejseplanSkabelonId)
-                .IsRequired();
-
-           
-            modelBuilder.Entity<DagSkabelonModel>()
-                .HasOne(d => d.TurSkabelon)
-                .WithMany(t => t.DagSkabeloner) 
-                .HasForeignKey(d => d.TurSkabelonId)
-                .IsRequired();
-
             // Concurrency-token som rowversion
             modelBuilder.Entity<RejseplanSkabelonModel>()
                 .Property(r => r.RowVersion)
@@ -41,6 +28,10 @@ namespace TANE.Skabelon.Api.Context
             modelBuilder.Entity<DagSkabelonModel>()
                 .Property(d => d.RowVersion)
                 .IsRowVersion();
+        }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer("Server=LocalHost;Database=TANE_Skabelon_Db;Trusted_Connection=True;Trust Server Certificate=True");
         }
     }
 }
