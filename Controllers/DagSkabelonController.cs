@@ -10,24 +10,24 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class DagSkabelonController : ControllerBase
     {
-        private readonly IGenericRepository<DagSkabelonModel> _genericRepository;
+        private readonly IGenericRepository<DagSkabelonModel> _dagSkabelonRepository;
 
         public DagSkabelonController(IGenericRepository<DagSkabelonModel> genericRepository)
         {
-            _genericRepository = genericRepository;
+            _dagSkabelonRepository = genericRepository;
         }
 
         [HttpGet("read")]
         public async Task<ActionResult<List<DagSkabelonModel>>> GetAll()
         {
-            var dagSkabeloner = await _genericRepository.GetAllAsync();
+            var dagSkabeloner = await _dagSkabelonRepository.GetAllAsync();
             return Ok(dagSkabeloner);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<DagSkabelonModel>> GetById(int id)
         {
-            var dagSkabeloner = await _genericRepository.GetByIdAsync(id);
+            var dagSkabeloner = await _dagSkabelonRepository.GetByIdAsync(id);
             if (dagSkabeloner == null)
                 return NotFound();
             return Ok(dagSkabeloner);
@@ -38,7 +38,7 @@ namespace TANE.Skabelon.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            await _genericRepository.AddAsync(dagSkabelon);
+            await _dagSkabelonRepository.AddAsync(dagSkabelon);
             return Ok();
         }
 
@@ -50,7 +50,7 @@ namespace TANE.Skabelon.Api.Controllers
 
             try
             {
-                await _genericRepository.UpdateAsync(dagSkabelon);
+                await _dagSkabelonRepository.UpdateAsync(dagSkabelon);
                 return Ok();
             }
 
@@ -65,10 +65,26 @@ namespace TANE.Skabelon.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task DeleteDagSkabelonModelAsync(int id, byte[] originalRowVersion)
         {
-            await _genericRepository.DeleteAsync(id);
-            return Ok();
+            // 1) Find og tjek eksistens
+            var dagSkabelon = await _dagSkabelonRepository.GetByIdAsync(id);
+            if (dagSkabelon == null)
+                throw new KeyNotFoundException($"Dagskabelon med id {id} ikke fundet.");
+
+            // 2) Sæt RowVersion til det, klienten kom med
+            dagSkabelon.RowVersion = originalRowVersion;
+
+            // 3) Kald repository og fang concurrency–fejl
+            try
+            {
+                await _dagSkabelonRepository.DeleteAsync(dagSkabelon);
+            }
+            catch (Exception)
+            {
+                throw new(
+                    $"Dagskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
+            }
         }
 
 
