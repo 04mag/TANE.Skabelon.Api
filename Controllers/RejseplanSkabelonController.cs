@@ -5,67 +5,82 @@ using TANE.Skabelon.Api.GenericRepositories;
 
 namespace TANE.Skabelon.Api.Controllers
 {
-        [Route("api/[controller]")]
-        [ApiController]
-        public class RejseplanSkabelonController : ControllerBase
+    [Route("api/[controller]")]
+    [ApiController]
+    public class RejseplanSkabelonController : ControllerBase
+    {
+        private readonly IGenericRepository<RejseplanSkabelonModel> _rejseplanSkabelonRepository;
+
+        public RejseplanSkabelonController(IGenericRepository<RejseplanSkabelonModel> genericRepository)
         {
-            private readonly IGenericRepository<RejseplanSkabelonModel> _genericRepository;
+            _rejseplanSkabelonRepository = genericRepository;
+        }
 
-            public RejseplanSkabelonController(IGenericRepository<RejseplanSkabelonModel> genericRepository)
-            {
-                _genericRepository = genericRepository;
-            }
+        [HttpGet("read")]
+        public async Task<ActionResult<List<RejseplanSkabelonModel>>> GetAll()
+        {
+            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetAllAsync();
+            return Ok(rejseplanSkabelon);
+        }
 
-            [HttpGet("read")]
-            public async Task<ActionResult<List<RejseplanSkabelonModel>>> GetAll()
-            {
-                var rejseplanSkabelon = await _genericRepository.GetAllAsync();
-                return Ok(rejseplanSkabelon);
-            }
+        [HttpGet("{id}")]
+        public async Task<ActionResult<RejseplanSkabelonModel>> GetById(int id)
+        {
+            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
+            if (rejseplanSkabelon == null)
+                return NotFound();
+            return Ok(rejseplanSkabelon);
+        }
 
-            [HttpGet("{id}")]
-            public async Task<ActionResult<RejseplanSkabelonModel>> GetById(int id)
-            {
-                var rejseplanSkabelon = await _genericRepository.GetByIdAsync(id);
-                if (rejseplanSkabelon == null)
-                    return NotFound();
-                return Ok(rejseplanSkabelon);
-            }
+        [HttpPost("create")]
+        public async Task<ActionResult> Create(RejseplanSkabelonModel rejseplanSkabelon)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            await _rejseplanSkabelonRepository.AddAsync(rejseplanSkabelon);
+            return Ok();
+        }
 
-            [HttpPost("create")]
-            public async Task<ActionResult> Create(RejseplanSkabelonModel rejseplanSkabelon)
+        [HttpPut("update")]
+        public async Task<ActionResult> Update(RejseplanSkabelonModel rejseplanSkabelon)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
             {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-                await _genericRepository.AddAsync(rejseplanSkabelon);
+                await _rejseplanSkabelonRepository.UpdateAsync(rejseplanSkabelon);
                 return Ok();
             }
 
-            [HttpPut("update")]
-            public async Task<ActionResult> Update(RejseplanSkabelonModel rejseplanSkabelon)
+            catch (DbUpdateConcurrencyException)
             {
-                if (ModelState.IsValid)
-                    return BadRequest(ModelState);
-
-                try
-                {
-                    await _genericRepository.UpdateAsync(rejseplanSkabelon);
-                    return Ok();
-                }
-
-                catch (DbUpdateConcurrencyException) 
-                {
-                    return Conflict("Concurrency Exception");
-                }
+                return Conflict("Concurrency Exception");
             }
+        }
 
-            [HttpDelete("{id}")]
-            public async Task <ActionResult> Delete(RejseplanSkabelonModel rejseplanSkabelon)
+        [HttpDelete("{id}")]
+        public async Task DeleteRejseplanSkabelonModelAsync(int id, byte[] originalRowVersion)
+        {
+            // 1) Find og tjek eksistens
+            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
+            if (rejseplanSkabelon == null)
+                throw new KeyNotFoundException($"Rejseplanskabelon med id {id} ikke fundet.");
+
+            // 2) Sæt RowVersion til det, klienten kom med
+            rejseplanSkabelon.RowVersion = originalRowVersion;
+
+            // 3) Kald repository og fang concurrency–fejl
+            try
             {
-                await _genericRepository.DeleteAsync(rejseplanSkabelon);
-                return Ok();
+                await _rejseplanSkabelonRepository.DeleteAsync(rejseplanSkabelon);
             }
-
-
+            catch (Exception)
+            {
+                throw new(
+                    $"Rejseplanskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
+            }
         }
     }
+ }
+    

@@ -12,6 +12,8 @@ namespace TANE.Skabelon.Api.Models
         public string Beskrivelse { get; set; }
 
         // Fremmednøgle og relation
-        public List<DagSkabelonModel>? DagSkabeloner { get; set; }      
+        public List<DagSkabelonModel>? DagSkabeloner { get; set; }    
+        
+        public List<RejseplanSkabelonModel>? RejseplanSkabeloner { get; set; }
     }
 }

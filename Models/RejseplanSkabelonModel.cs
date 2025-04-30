@@ -7,7 +7,7 @@ namespace TANE.Skabelon.Api.Models
         
 
         // Relation til ture
-        public List<TurSkabelonModel> TurSkabeloner { get; set; }
+        public List<TurSkabelonModel>? TurSkabeloner { get; set; }
 
     
   

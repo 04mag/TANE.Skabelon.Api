@@ -28,7 +28,7 @@ namespace TANE.Skabelon.Api
             {
                 var context = scope.ServiceProvider.GetRequiredService<SkabelonDbContext>();
              
-                context.Database.EnsureCreated();
+               // context.Database.EnsureCreated();
 
             }
 
