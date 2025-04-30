@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using TANE.Skabelon.Api.Dtos;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
 using TANE.Skabelon.Api.GenericRepositories;
@@ -11,76 +13,90 @@ namespace TANE.Skabelon.Api.Controllers
     public class TurSkabelonController : ControllerBase
     {
         private readonly IGenericRepository<TurSkabelonModel> _turSkabelonRepository;
+        private readonly IMapper _mapper;
 
-        public TurSkabelonController(IGenericRepository<TurSkabelonModel> genericRepository)
+        public TurSkabelonController(IGenericRepository<TurSkabelonModel> genericRepository, IMapper mapper)
         {
             _turSkabelonRepository = genericRepository;
+            _mapper = mapper;
         }
 
         [HttpGet("read")]
-        public async Task<ActionResult<List<TurSkabelonModel>>> GetAll()
+        public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetAll(int id)
         {
-            var turSkabeloner = await _turSkabelonRepository.GetAllAsync();
-            return Ok(turSkabeloner);
+            var turSkabelon = await _turSkabelonRepository.GetAllAsync(id);
+            return Ok(_mapper.Map<IEnumerable<TurSkabelonReadDto>>(turSkabelon));
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TurSkabelonModel>> GetById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetById(int id)
         {
-            var turSkabeloner = await _turSkabelonRepository.GetByIdAsync(id);
-            if (turSkabeloner == null)
+            var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);
+            if (turSkabelon == null)
                 return NotFound();
-            return Ok(turSkabeloner);
+
+            return Ok(_mapper.Map<TurSkabelonReadDto>(turSkabelon));
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult> Create(TurSkabelonModel turSkabelon)
+        public async Task<ActionResult<TurSkabelonReadDto>> Create([FromBody] (TurSkabelonCreateDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            await _turSkabelonRepository.AddAsync(turSkabelon);
-            return Ok();
+            var turSkabelon = _mapper.Map<TurSkabelonModel>(dto);
+            await _turSkabelonRepository.AddAsync(dto);
+            var readDto = _mapper.Map<TurSkabelonReadDto>(turSkabelon);
+            return CreatedAtAction(nameof(GetById), new {id = readDto.Id}, readDto);
         }
 
-        [HttpPut("update")]
-        public async Task<ActionResult> Update(TurSkabelonModel turSkabelon)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] TurSkabelonUpdateDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (id != dto.Id)
+                return BadRequest();
 
+            var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);
+            if (turSkabelon == null)
+                return NotFound();
             try
             {
-                await _turSkabelonRepository.UpdateAsync(turSkabelon);
-                return Ok();
+                _mapper.Map(dto, turSkabelon);
+                await _turSkabelonRepository.UpdateAsync(id, dto);
+                return NoContent();
             }
 
             catch (DbUpdateConcurrencyException)
             {
-                return Conflict("Concurrency Exception");
+                throw new Exception($"The entity {typeof(T).Name} was modified by another user.");
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task DeleteTurSkabelonModelAsync(int id, byte[] originalRowVersion)
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id, byte[] RowVersion)
         {
-            // 1) Find og tjek eksistens
-            var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);
-            if (turSkabelon == null)
-                throw new KeyNotFoundException($"Turskabelon med id {id} ikke fundet.");
+            var existing = await _turSkabelonRepository.GetByIdAsync(id);
+            if (existing == null)
+                return NotFound();
 
-            // 2) Sæt RowVersion til det, klienten kom med
-            turSkabelon.RowVersion = originalRowVersion;
+            await _turSkabelonRepository.DeleteAsync(id, RowVersion);
+            return NoContent();
+            //// 1) Find og tjek eksistens
+            //var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);
+            //if (turSkabelon == null)
+            //    throw new KeyNotFoundException($"Turskabelon med id {id} ikke fundet.");
 
-            // 3) Kald repository og fang concurrency–fejl
-            try
-            {
-                await _turSkabelonRepository.DeleteAsync(turSkabelon);
-            }
-            catch (Exception)
-            {
-                throw new(
-                    $"Turskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
-            }
+            //// 2) Sæt RowVersion til det, klienten kom med
+            //turSkabelon.RowVersion = originalRowVersion;
+
+            //// 3) Kald repository og fang concurrency–fejl
+            //try
+            //{
+            //    await _turSkabelonRepository.DeleteAsync(turSkabelon);
+            //}
+            //catch (Exception)
+            //{
+            //    throw new(
+            //        $"Turskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
+            //}
         }
 
 

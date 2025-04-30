@@ -1,4 +1,5 @@
-﻿using TANE.Skabelon.Api.Models;
+﻿using TANE.Skabelon.Api.Dtos;
+using TANE.Skabelon.Api.Models;
 
 namespace TANE.Skabelon.Api.GenericRepositories
 {
@@ -6,7 +7,7 @@ namespace TANE.Skabelon.Api.GenericRepositories
         public interface IGenericRepository<T> where T : BaseEntity
         {
             Task<T?> GetByIdAsync(int id);
-            Task<IEnumerable<T>> GetAllAsync();
+            Task<IEnumerable<T>> GetAllAsync(int turSkabelonId);
             Task DeleteAsync(T entity);
             Task UpdateAsync(T entity);
             Task AddAsync(T entity);

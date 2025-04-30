@@ -39,7 +39,7 @@ namespace TANE.Skabelon.Api.GenericRepositories
             }
         }
         
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IEnumerable<T>> GetAllAsync(int turSkabelonId)
         {
             return await _dbSet.ToListAsync();
         }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using TANE.Skabelon.Api.Dtos;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.GenericRepositories;
 using TANE.Skabelon.Api.Models;
@@ -11,81 +13,87 @@ namespace TANE.Skabelon.Api.Controllers
     public class DagSkabelonController : ControllerBase
     {
         private readonly IGenericRepository<DagSkabelonModel> _dagSkabelonRepository;
+        private readonly IMapper _mapper;
 
-        public DagSkabelonController(IGenericRepository<DagSkabelonModel> genericRepository)
+        public DagSkabelonController(IGenericRepository<DagSkabelonModel> genericRepository, IMapper mapper)
         {
             _dagSkabelonRepository = genericRepository;
+            _mapper = mapper;
         }
-
+        //Søren revies
         [HttpGet("read")]
-        public async Task<ActionResult<List<DagSkabelonModel>>> GetAll()
+        public async Task<ActionResult<IEnumerable<DagSkabelonReadDto>>> GetAll()
         {
             var dagSkabeloner = await _dagSkabelonRepository.GetAllAsync();
-            return Ok(dagSkabeloner);
+            return Ok(_mapper.Map<IEnumerable<DagSkabelonReadDto>>(dagSkabeloner));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<DagSkabelonModel>> GetById(int id)
+        public async Task<ActionResult<DagSkabelonReadDto>> GetById(int id)
         {
             var dagSkabeloner = await _dagSkabelonRepository.GetByIdAsync(id);
             if (dagSkabeloner == null)
                 return NotFound();
-            return Ok(dagSkabeloner);
+            return Ok(_mapper.Map<DagSkabelonReadDto>(dagSkabeloner));
         }
 
+        //Søren review
         [HttpPost("create")]
-        public async Task<ActionResult> Create(DagSkabelonModel dagSkabelon)
+        public async Task<ActionResult<DagSkabelonReadDto>> Create([FromBody] DagSkabelonCreateDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            await _dagSkabelonRepository.AddAsync(dagSkabelon);
-            return Ok();
-        }
+            var dagSkabelonEntity = _mapper.Map<DagSkabelonModel>(dto);
+            await _dagSkabelonRepository.AddAsync(dto);
 
-        [HttpPut("update")]
-        public async Task<ActionResult> Update(DagSkabelonModel dagSkabelon)
+            var readDto = _mapper.Map<DagSkabelonReadDto>(dagSkabelonEntity);
+            return CreatedAtAction(nameof(GetById)),new { id = readDto.Id} readDto);
+            
+        }
+        //Søren review
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id,[FromBody] DagSklabelonUpdateDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var existing = await _dagSkabelonRepository.GetByIdAsync(id);
+            if (existing == null)
+                return NotFound();
 
-            try
-            {
-                await _dagSkabelonRepository.UpdateAsync(dagSkabelon);
-                return Ok();
-            }
-
-            catch (DbUpdateConcurrencyException)
-            {
-                return Conflict("Concurrency Exception");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            _mapper.Map(dto, existing);
+            await _dagSkabelonRepository.UpdateAsync(id, dto);
+            return NoContent();
         }
-
+        //Søren review
         [HttpDelete("{id}")]
-        public async Task DeleteDagSkabelonModelAsync(int id, byte[] originalRowVersion)
+        public async Task<IActionResult> Delete(int id, [FromQuery] byte[] rowVersion)
         {
-            // 1) Find og tjek eksistens
-            var dagSkabelon = await _dagSkabelonRepository.GetByIdAsync(id);
-            if (dagSkabelon == null)
-                throw new KeyNotFoundException($"Dagskabelon med id {id} ikke fundet.");
+            var existing = await _dagSkabelonRepository.GetByIdAsync(id);
+            if ( existing == null)
+                return NotFound();
 
-            // 2) Sæt RowVersion til det, klienten kom med
-            dagSkabelon.RowVersion = originalRowVersion;
-
-            // 3) Kald repository og fang concurrency–fejl
-            try
-            {
-                await _dagSkabelonRepository.DeleteAsync(dagSkabelon);
-            }
-            catch (Exception)
-            {
-                throw new(
-                    $"Dagskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
-            }
+            await _dagSkabelonRepository.DeleteAsync(id, rowVersion);
+                return NoContent();
         }
+
+
+        //public async Task DeleteDagSkabelonModelAsync(int id, byte[] originalRowVersion)
+        //{
+        //    // 1) Find og tjek eksistens
+        //    var dagSkabelon = await _dagSkabelonRepository.GetByIdAsync(id);
+        //    if (dagSkabelon == null)
+        //        throw new KeyNotFoundException($"Dagskabelon med id {id} ikke fundet.");
+
+        //    // 2) Sæt RowVersion til det, klienten kom med
+        //    dagSkabelon.RowVersion = originalRowVersion;
+
+        //    // 3) Kald repository og fang concurrency–fejl
+        //    try
+        //    {
+        //        await _dagSkabelonRepository.DeleteAsync(dagSkabelon);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        throw new(
+        //            $"Dagskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
+        //    }
+        //}
 
 
     }
