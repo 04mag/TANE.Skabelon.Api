@@ -14,15 +14,11 @@ namespace TANE.Skabelon.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Add connection string og dbcontext 
+            builder.Services.AddDbContext<SkabelonDbContext>(options =>
             {
-                // Add connection string og dbcontext 
-                builder.Services.AddDbContext<SkabelonDbContext>(options =>
-                {
-                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-
-
+                options.UseSqlServer(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection"));
             });
-            }
 
             // Create datanase
             using (var scope = builder.Services.BuildServiceProvider().CreateScope())
@@ -30,7 +26,7 @@ namespace TANE.Skabelon.Api
                 var context = scope.ServiceProvider.GetRequiredService<SkabelonDbContext>();
                 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-                // context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
 
             }
 
