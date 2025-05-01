@@ -1,4 +1,11 @@
 
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using TANE.Skabelon.Api.GenericRepositories;
+using TANE.Skabelon.Api.Context;
+
+
+
 namespace TANE.Skabelon.Api
 {
     public class Program
@@ -7,10 +14,36 @@ namespace TANE.Skabelon.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            {
+                // Add connection string og dbcontext 
+                builder.Services.AddDbContext<SkabelonDbContext>(options =>
+                {
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 
+
+            });
+            }
+
+            // Create datanase
+            using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<SkabelonDbContext>();
+                builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+                // context.Database.EnsureCreated();
+
+            }
+
+            // Add repositories
+            //var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+           
+
+            // Add controllers
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+            // 
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -31,6 +64,6 @@ namespace TANE.Skabelon.Api
             app.MapControllers();
 
             app.Run();
-        }
+        }   
     }
 }
