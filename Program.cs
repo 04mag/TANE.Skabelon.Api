@@ -1,4 +1,5 @@
 
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.GenericRepositories;
 using TANE.Skabelon.Api.Context;
@@ -27,8 +28,9 @@ namespace TANE.Skabelon.Api
             using (var scope = builder.Services.BuildServiceProvider().CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<SkabelonDbContext>();
-             
-               // context.Database.EnsureCreated();
+                builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+                // context.Database.EnsureCreated();
 
             }
 

@@ -4,9 +4,10 @@ namespace TANE.Skabelon.Api.Dtos
 {
     public class RejseplanSkabelonCreateDto
     {
-        public int Id { get; set; }
-        
-        public List<TurSkabelonCreateDto> Ture { get; set; } = new();
+        public string Titel { get; set; }
+        public string Beskrivelse { get; set; }
+
+        public List<TurSkabelonCreateDto>? Ture { get; set; } 
 
         
 }

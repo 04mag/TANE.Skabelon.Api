@@ -57,8 +57,8 @@ namespace TANE.Skabelon.Api.Controllers
             if (rejseplanSkabelon == null)
                 return NotFound();
 
-            _mapper.Map(rejseplanSkabelonUpdateDto, rejseplanSkabelon);
-            await _rejseplanSkabelonRepository.UpdateAsync(id, rejseplanSkabelonUpdateDto);
+           var rs = _mapper.Map(rejseplanSkabelonUpdateDto, rejseplanSkabelon);
+            await _rejseplanSkabelonRepository.UpdateAsync(rs);
             return Ok();
         }
 
@@ -67,8 +67,11 @@ namespace TANE.Skabelon.Api.Controllers
         {
             var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
             if (rejseplanSkabelon == null)
+              {
                 return NotFound();
-
+}
+            await _rejseplanSkabelonRepository.DeleteAsync(rejseplanSkabelon);
+       
             return NoContent();
         }
         //public async Task DeleteRejseplanSkabelonModelAsync(int id, byte[] originalRowVersion)

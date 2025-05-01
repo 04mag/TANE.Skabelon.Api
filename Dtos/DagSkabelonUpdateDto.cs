@@ -2,7 +2,7 @@
 
 namespace TANE.Skabelon.Api.Dtos
 {
-    public class DagSklabelonUpdateDto
+    public class DagSkabelonUpdateDto
     {
         public int Id { get; set; }
         public List<int> TurSkabelonIds { get; set; } = new();

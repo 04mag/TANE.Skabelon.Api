@@ -58,14 +58,14 @@ namespace TANE.Skabelon.Api.Controllers
                 return NotFound();
             try
             {
-                _mapper.Map(dto, turSkabelon);
-                await _turSkabelonRepository.UpdateAsync(id, dto);
+               var ts = _mapper.Map(dto, turSkabelon);
+                await _turSkabelonRepository.UpdateAsync(ts);
                 return NoContent();
             }
 
             catch (DbUpdateConcurrencyException)
             {
-                throw new Exception($"The entity {typeof(T).Name} was modified by another user.");
+                throw new Exception($"The entity {typeof(BaseEntity).Name} was modified by another user.");
             }
         }
 
@@ -77,7 +77,7 @@ namespace TANE.Skabelon.Api.Controllers
             if (existing == null)
                 return NotFound();
 
-            await _turSkabelonRepository.DeleteAsync(id, RowVersion);
+            await _turSkabelonRepository.DeleteAsync(existing);
             return NoContent();
             //// 1) Find og tjek eksistens
             //var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);

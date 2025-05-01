@@ -13,5 +13,7 @@ namespace TANE.Skabelon.Api.Dtos
         public List<DagSkabelonReadDto> Dage { get; set; } = new();
         //public ICollection<RejsePlan> RejsePlaner { get; set; } = new List<RejsePlan>();
         public List<int> RejsePlanIds { get; set; } = new();
+        public byte[] RowVersion { get; set; }  // **Til optimistic concurrency**
     }
 }
+

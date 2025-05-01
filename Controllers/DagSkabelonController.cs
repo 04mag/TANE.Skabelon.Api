@@ -50,14 +50,14 @@ namespace TANE.Skabelon.Api.Controllers
         }
         //Søren review
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id,[FromBody] DagSklabelonUpdateDto dto)
+        public async Task<IActionResult> Update(int id,[FromBody] DagSkabelonUpdateDto dto)
         {
             var existing = await _dagSkabelonRepository.GetByIdAsync(id);
             if (existing == null)
                 return NotFound();
 
-            _mapper.Map(dto, existing);
-            await _dagSkabelonRepository.UpdateAsync(id, dto);
+           var ds = _mapper.Map(dto, existing);
+            await _dagSkabelonRepository.UpdateAsync(ds);
             return NoContent();
         }
         //Søren review
@@ -68,7 +68,7 @@ namespace TANE.Skabelon.Api.Controllers
             if ( existing == null)
                 return NotFound();
 
-            await _dagSkabelonRepository.DeleteAsync(id, rowVersion);
+            await _dagSkabelonRepository.DeleteAsync(existing);
                 return NoContent();
         }
 
