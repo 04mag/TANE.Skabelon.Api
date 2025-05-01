@@ -14,21 +14,26 @@ namespace TANE.Skabelon.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
             // Add connection string og dbcontext 
             builder.Services.AddDbContext<SkabelonDbContext>(options =>
             {
                 options.UseSqlServer(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection"));
+
+                Console.WriteLine(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            // Create datanase
+            // Create database
             using (var scope = builder.Services.BuildServiceProvider().CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<SkabelonDbContext>();
-                builder.Services.AddAutoMapper(typeof(Program).Assembly);
-
                 context.Database.EnsureCreated();
 
+
+                Console.WriteLine("Database created");
             }
+
 
             // Add repositories
             //var conn = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -37,8 +42,6 @@ namespace TANE.Skabelon.Api
 
             // Add controllers
             builder.Services.AddControllers();
-
-            // 
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

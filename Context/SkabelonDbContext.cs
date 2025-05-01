@@ -12,11 +12,6 @@ namespace TANE.Skabelon.Api.Context
         public DbSet<DagSkabelonModel> DagSkabelon { get; set; }
 
 
-        // Configuration of DbContext 
-       
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer("Server=LocalHost;Database=TANE_Skabelon_Db;Trusted_Connection=True;Trust Server Certificate=True");
-        }
+        
     }
 }
