@@ -22,9 +22,9 @@ namespace TANE.Skabelon.Api.Controllers
         }
 
         [HttpGet("read")]
-        public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetAll(int id)
+        public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetAll()
         {
-            var turSkabelon = await _turSkabelonRepository.GetAllAsync(id);
+            var turSkabelon = await _turSkabelonRepository.GetAllAsync();
             return Ok(_mapper.Map<IEnumerable<TurSkabelonReadDto>>(turSkabelon));
         }
 
@@ -39,10 +39,10 @@ namespace TANE.Skabelon.Api.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<ActionResult<TurSkabelonReadDto>> Create([FromBody] (TurSkabelonCreateDto dto)
+        public async Task<ActionResult<TurSkabelonReadDto>> Create([FromBody] TurSkabelonCreateDto dto)
         {
             var turSkabelon = _mapper.Map<TurSkabelonModel>(dto);
-            await _turSkabelonRepository.AddAsync(dto);
+            await _turSkabelonRepository.AddAsync(turSkabelon);
             var readDto = _mapper.Map<TurSkabelonReadDto>(turSkabelon);
             return CreatedAtAction(nameof(GetById), new {id = readDto.Id}, readDto);
         }

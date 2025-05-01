@@ -42,10 +42,10 @@ namespace TANE.Skabelon.Api.Controllers
         public async Task<ActionResult<DagSkabelonReadDto>> Create([FromBody] DagSkabelonCreateDto dto)
         {
             var dagSkabelonEntity = _mapper.Map<DagSkabelonModel>(dto);
-            await _dagSkabelonRepository.AddAsync(dto);
+            await _dagSkabelonRepository.AddAsync(dagSkabelonEntity);
 
             var readDto = _mapper.Map<DagSkabelonReadDto>(dagSkabelonEntity);
-            return CreatedAtAction(nameof(GetById)),new { id = readDto.Id} readDto);
+            return CreatedAtAction(nameof(GetById),new { id = readDto.Id}, _mapper.Map<DagSkabelonReadDto> (readDto));
             
         }
         //Søren review

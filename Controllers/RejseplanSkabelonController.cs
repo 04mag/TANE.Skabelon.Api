@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿
+using AutoMapper;
 using TANE.Skabelon.Api.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -39,8 +40,8 @@ namespace TANE.Skabelon.Api.Controllers
         [HttpPost("create")]
         public async Task<ActionResult<RejseplanSkabelonReadDto>> Create(RejseplanSkabelonCreateDto rejseplanSkabelonCreateDto)
         {
-            var rejseplanSkabelon = _mapper.Map<RejseplanSkabebelonModel>(rejseplanSkabelonCreateDto);
-            await _rejseplanSkabelonRepository.AddAsync(rejseplanSkabelonCreateDto);
+            var rejseplanSkabelon = _mapper.Map<RejseplanSkabelonModel>(rejseplanSkabelonCreateDto);
+            await _rejseplanSkabelonRepository.AddAsync(rejseplanSkabelon);
 
             return CreatedAtAction(nameof(GetById), new {id = rejseplanSkabelon.Id},
                 _mapper.Map<RejseplanSkabelonReadDto>(rejseplanSkabelon));
