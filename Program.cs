@@ -21,17 +21,24 @@ namespace TANE.Skabelon.Api
             {
                 options.UseSqlServer(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection"));
 
-                Console.WriteLine(Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
             // Create database
             using (var scope = builder.Services.BuildServiceProvider().CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<SkabelonDbContext>();
-                context.Database.EnsureCreated();
 
+                try
+                {
+                    context.Database.EnsureCreated();
+                }
+                catch
+                {
+                    //Close app if database creation fails
+                    Console.WriteLine("Database creation failed");
+                    Environment.Exit(1);
+                }
 
-                Console.WriteLine("Database created");
             }
 
 
