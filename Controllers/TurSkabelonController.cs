@@ -21,7 +21,7 @@ namespace TANE.Skabelon.Api.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("read")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetAll()
         {
             var turSkabelon = await _turSkabelonRepository.GetAllAsync();
@@ -38,7 +38,7 @@ namespace TANE.Skabelon.Api.Controllers
             return Ok(_mapper.Map<TurSkabelonReadDto>(turSkabelon));
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<ActionResult<TurSkabelonReadDto>> Create([FromBody] TurSkabelonCreateDto dto)
         {
             var turSkabelon = _mapper.Map<TurSkabelonModel>(dto);
