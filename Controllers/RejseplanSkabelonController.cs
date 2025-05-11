@@ -21,7 +21,7 @@ namespace TANE.Skabelon.Api.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("read")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<RejseplanSkabelonReadDto>>> GetAll()
         {
             var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetAllAsync();
@@ -37,7 +37,7 @@ namespace TANE.Skabelon.Api.Controllers
             return Ok(_mapper.Map<RejseplanSkabelonReadDto>(rejseplanSkabelon));
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<ActionResult<RejseplanSkabelonReadDto>> Create(RejseplanSkabelonCreateDto rejseplanSkabelonCreateDto)
         {
             var rejseplanSkabelon = _mapper.Map<RejseplanSkabelonModel>(rejseplanSkabelonCreateDto);

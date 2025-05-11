@@ -21,7 +21,7 @@ namespace TANE.Skabelon.Api.Controllers
             _mapper = mapper;
         }
         //Søren revies
-        [HttpGet("read")]
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<DagSkabelonReadDto>>> GetAll()
         {
             var dagSkabeloner = await _dagSkabelonRepository.GetAllAsync();
@@ -38,7 +38,7 @@ namespace TANE.Skabelon.Api.Controllers
         }
 
         //Søren review
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<ActionResult<DagSkabelonReadDto>> Create([FromBody] DagSkabelonCreateDto dto)
         {
             var dagSkabelonEntity = _mapper.Map<DagSkabelonModel>(dto);
