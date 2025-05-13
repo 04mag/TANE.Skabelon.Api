@@ -8,15 +8,15 @@ namespace TANE.Skabelon.Api.Models
     {
         public string Beskrivelse { get; set; }
 
-        public List <String> Aktiviteter { get; set; }
-        public List <String> Måltider { get; set; }
+        public String Aktiviteter { get; set; }
+        public String Måltider { get; set; }
 
         public string Overnatning { get; set; }
 
         [Required]
         public double Pris { get; set; }
-        [JsonIgnore]
-        public List<TurSkabelonModel>? Tur { get; set; }
+        //[JsonIgnore]
+      //  public List<TurSkabelonModel>? Tur { get; set; }
 
       
     }

@@ -15,7 +15,7 @@ namespace TANE.Skabelon.Api.Mappings
             CreateMap<TurSkabelonCreateDto, TurSkabelonModel>().ReverseMap();
             CreateMap<TurSkabelonUpdateDto, TurSkabelonModel>()
               //  .EqualityComparison((src, dest) => src.RowVersion == dest.RowVersion)
-                .ForMember(d => d.DagSkabeloner, opt => opt.UseDestinationValue());
+                .ForMember(d => d.Dage, opt => opt.UseDestinationValue());
             CreateMap<RejseplanSkabelonModel, RejseplanSkabelonReadDto>().ReverseMap();
             CreateMap<RejseplanSkabelonCreateDto, RejseplanSkabelonModel>().ReverseMap();
             CreateMap<RejseplanSkabelonUpdateDto, RejseplanSkabelonModel>()

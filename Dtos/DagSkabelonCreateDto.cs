@@ -4,11 +4,11 @@ namespace TANE.Skabelon.Api.Dtos
 {
     public class DagSkabelonCreateDto
     {
-        public List<int> TurSkabelonIds { get; set; } = new();
+      //  public List<int> TurSkabelonIds { get; set; } = new();
         public string Titel { get; set; }
         public string Beskrivelse { get; set; }
-        public List<string> Aktiviteter { get; set; } = new();
-        public List<string> Måltider { get; set; } = new();
+        public string Aktiviteter { get; set; } 
+        public string Måltider { get; set; } 
         public string Overnatning { get; set; }
         public double Pris { get; set; }
     }
