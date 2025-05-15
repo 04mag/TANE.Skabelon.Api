@@ -14,5 +14,6 @@ namespace TANE.Skabelon.Api.Dtos
         public double Pris { get; set; }
         [Required]
         public byte[] RowVersion { get; set; }  // **Til optimistic concurrency**
+        public int Sekvens { get; set; }
     }
 }

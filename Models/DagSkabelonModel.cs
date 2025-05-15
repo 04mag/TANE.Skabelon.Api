@@ -15,9 +15,11 @@ namespace TANE.Skabelon.Api.Models
 
         [Required]
         public double Pris { get; set; }
-        //[JsonIgnore]
-      //  public List<TurSkabelonModel>? Tur { get; set; }
 
-      
+        public int Sekvens { get; set; }
+        //[JsonIgnore]
+        //  public List<TurSkabelonModel>? Tur { get; set; }
+
+
     }
 }

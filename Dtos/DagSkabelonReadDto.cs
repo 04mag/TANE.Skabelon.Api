@@ -11,5 +11,6 @@
         public string Overnatning { get; set; }
         public double Pris { get; set; }
         public byte[] RowVersion { get; set; }  // **Til optimistic concurrency**
+        public int Sekvens { get; set; }
     }  
 }

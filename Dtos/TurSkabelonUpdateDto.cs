@@ -16,5 +16,6 @@ namespace TANE.Skabelon.Api.Dtos
 
         [Required(ErrorMessage = "RowVersion is required")]
         public byte[] RowVersion { get; set; }  // **Til optimistic concurrency**
+        public int Sekvens { get; set; }
     }
 }

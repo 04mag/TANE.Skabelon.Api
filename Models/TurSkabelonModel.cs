@@ -15,5 +15,6 @@ namespace TANE.Skabelon.Api.Models
         public List<DagSkabelonModel>? Dage { get; set; }    
         
         public List<RejseplanSkabelonModel>? RejseplanSkabeloner { get; set; }
+        public int Sekvens { get; set; }
     }
 }
