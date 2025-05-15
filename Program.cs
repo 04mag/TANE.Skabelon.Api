@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.GenericRepositories;
 using TANE.Skabelon.Api.Context;
+using TANE.Skabelon.Api.Mappings;
 
 
 
@@ -14,7 +15,7 @@ namespace TANE.Skabelon.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddAutoMapper(typeof(Program).Assembly);
+            builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
             // Add connection string og dbcontext 
             builder.Services.AddDbContext<SkabelonDbContext>(options =>
