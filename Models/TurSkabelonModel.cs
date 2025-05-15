@@ -11,10 +11,13 @@ namespace TANE.Skabelon.Api.Models
 
         public string Beskrivelse { get; set; }
 
+        public double Pris { get; set; }
+
         // Fremmednøgle og relation
         public List<DagSkabelonModel>? Dage { get; set; }    
         
         public List<RejseplanSkabelonModel>? RejseplanSkabeloner { get; set; }
+
         public int Sekvens { get; set; }
     }
 }

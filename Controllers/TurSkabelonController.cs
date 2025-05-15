@@ -31,7 +31,7 @@ namespace TANE.Skabelon.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetById(int id)
         {
-            var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);
+            var turSkabelon = await _turSkabelonRepository.GetByIdWithIncludeAsync(id);
             if (turSkabelon == null)
                 return NotFound();
 

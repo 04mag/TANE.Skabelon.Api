@@ -31,7 +31,7 @@ namespace TANE.Skabelon.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<RejseplanSkabelonReadDto>> GetById(int id)
         {
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
+            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdWithIncludeAsync(id);
             if (rejseplanSkabelon == null)
                 return NotFound();
             return Ok(_mapper.Map<RejseplanSkabelonReadDto>(rejseplanSkabelon));
