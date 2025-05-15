@@ -53,9 +53,10 @@ namespace TANE.Skabelon.Api.Controllers
             if (id != dto.Id)
                 return BadRequest();
 
-            var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);
+            var turSkabelon = await _turSkabelonRepository.GetByIdWithIncludeAsync(
+                id,include => include.Dage);
             if (turSkabelon == null)
-                return NotFound();
+                throw new KeyNotFoundException($"Tur {id} ikke fundet.");
             try
             {
                var ts = _mapper.Map(dto, turSkabelon);
