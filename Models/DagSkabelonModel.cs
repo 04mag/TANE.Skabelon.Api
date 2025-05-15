@@ -6,6 +6,7 @@ namespace TANE.Skabelon.Api.Models
 {
     public class DagSkabelonModel : BaseEntity
     {
+        public string Titel { get; set; }
         public string Beskrivelse { get; set; }
 
         public String Aktiviteter { get; set; }
