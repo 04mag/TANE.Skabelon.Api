@@ -24,14 +24,14 @@ namespace TANE.Skabelon.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetAll()
         {
-            var turSkabelon = await _turSkabelonRepository.GetAllAsync();
+            var turSkabelon = await _turSkabelonRepository.GetAllAsync(q => q.Include(t => t.Dage));
             return Ok(_mapper.Map<IEnumerable<TurSkabelonReadDto>>(turSkabelon));
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetById(int id)
         {
-            var turSkabelon = await _turSkabelonRepository.GetByIdWithIncludeAsync(id);
+            var turSkabelon = await _turSkabelonRepository.GetByIdWithIncludeAsync(id, d=> d.Dage);
             if (turSkabelon == null)
                 return NotFound();
 
