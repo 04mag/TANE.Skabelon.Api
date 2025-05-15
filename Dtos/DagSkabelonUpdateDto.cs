@@ -11,8 +11,7 @@ namespace TANE.Skabelon.Api.Dtos
         public string Aktiviteter { get; set; } 
         public string Måltider { get; set; } 
         public string Overnatning { get; set; }
-        public double Pris { get; set; }
-        [Required]
+      
         public byte[] RowVersion { get; set; }  // **Til optimistic concurrency**
         public int Sekvens { get; set; }
     }
