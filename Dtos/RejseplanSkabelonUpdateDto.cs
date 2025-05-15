@@ -7,7 +7,7 @@ namespace TANE.Skabelon.Api.Dtos
         public int Id { get; set; }
         public string Titel { get; set; }
         public string Beskrivelse { get; set; }
-        public List<TurSkabelonCreateDto> Ture { get; set; } = new();
+        public List<TurSkabelonUpdateDto> Ture { get; set; } = new();
         [Required]
         public byte[] RowVersion { get; set; }  // **Til optimistic concurrency**
     }

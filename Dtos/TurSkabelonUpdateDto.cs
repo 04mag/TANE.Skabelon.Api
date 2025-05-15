@@ -12,9 +12,8 @@ namespace TANE.Skabelon.Api.Dtos
         public string Titel { get; set; }
         public string Beskrivelse { get; set; }
         public double Pris { get; set; }
-        public List<DagSkabelonCreateDto> Dage { get; set; }
+        public List<DagSkabelonUpdateDto> Dage { get; set; }
 
-        [Required(ErrorMessage = "RowVersion is required")]
         public byte[] RowVersion { get; set; }  // **Til optimistic concurrency**
         public int Sekvens { get; set; }
     }
