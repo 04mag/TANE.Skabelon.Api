@@ -39,7 +39,7 @@ namespace TANE.Skabelon.Api.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<ICollection<TurSkabelonModel>>> GetById(int id)
+        public async Task<ActionResult<TurSkabelonModel>> GetById(int id)
         {
             using (var skabelonDbContext = new SkabelonDbContext(options))
             {
