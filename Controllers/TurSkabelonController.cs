@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
 using TANE.Skabelon.Api.GenericRepositories;
 using Microsoft.IdentityModel.Tokens;
+using TANE.Skabelon.Api.Context;
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -13,145 +14,81 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class TurSkabelonController : ControllerBase
     {
-        private readonly IGenericRepository<TurSkabelonModel> _turSkabelonRepository;
-        private readonly IMapper _mapper;
+        private readonly SkabelonDbContext skabelonDbContext;
 
-        public TurSkabelonController(IGenericRepository<TurSkabelonModel> genericRepository, IMapper mapper)
+        public TurSkabelonController(SkabelonDbContext skabelonDbContext)
         {
-            _turSkabelonRepository = genericRepository;
-            _mapper = mapper;
+            this.skabelonDbContext = skabelonDbContext;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetAll()
+        public async Task<ActionResult<ICollection<TurSkabelonModel>>> GetAll()
         {
-            var turSkabelon = await _turSkabelonRepository.GetAllAsync(q => q.Include(t => t.Dage));
-            return Ok(_mapper.Map<IEnumerable<TurSkabelonReadDto>>(turSkabelon));
+            return Ok(await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync());
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<IEnumerable<TurSkabelonReadDto>>> GetById(int id)
+        public async Task<ActionResult<ICollection<TurSkabelonModel>>> GetById(int id)
         {
-            var turSkabelon = await _turSkabelonRepository.GetByIdWithIncludeAsync(id, d=> d.Dage);
-            if (turSkabelon == null)
-                return NotFound();
+            var result = await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).FirstOrDefaultAsync(x => x.Id == id);
 
-            return Ok(_mapper.Map<TurSkabelonReadDto>(turSkabelon));
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
         }
 
         [HttpPost]
-        public async Task<ActionResult<TurSkabelonReadDto>> Create([FromBody] TurSkabelonCreateDto dto)
+        public async Task<ActionResult<TurSkabelonModel>> Create(TurSkabelonModel turSkabelonModel)
         {
-            var turSkabelon = _mapper.Map<TurSkabelonModel>(dto);
-            await _turSkabelonRepository.AddAsync(turSkabelon);
-            var readDto = _mapper.Map<TurSkabelonReadDto>(turSkabelon);
-            return CreatedAtAction(nameof(GetById), new {id = readDto.Id}, readDto);
+            skabelonDbContext.TurSkabelon.Add(turSkabelonModel);
+
+            await skabelonDbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetById), new { id = turSkabelonModel.Id }, turSkabelonModel);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] TurSkabelonUpdateDto dto)
+        public async Task<ActionResult<TurSkabelonModel>> Update(int id, TurSkabelonModel turSkabelonModel)
         {
-            if (id != dto.Id)
-                return BadRequest("URL-id og DTO-id skal være ens.");
+            var existingTurSkabelon = await skabelonDbContext.TurSkabelon.FindAsync(id);
 
-            // 2a) Hent aggregate inkl. alle dage
-            var turSkabelon = await _turSkabelonRepository
-                .GetByIdWithIncludeAsync(id, ts => ts.Dage!);
-            if (turSkabelon == null)
-                return NotFound($"TurSkabelon med id={id} ikke fundet.");
-
-            // 2b) Opdater parent-felter
-            turSkabelon.Titel = dto.Titel;
-            turSkabelon.Beskrivelse = dto.Beskrivelse;
-            turSkabelon.Pris = dto.Pris;
-            turSkabelon.Sekvens = dto.Sekvens;
-
-            // 3) Diff nested Dage
-            var incomingIds = dto.Dage
-                                 .Where(d => d.Id > 0)
-                                 .Select(d => d.Id)
-                                 .ToHashSet();
-
-            // 3a) Slet de dage, som DTO’en ikke længere refererer til
-            foreach (var dag in turSkabelon.Dage!
-                               .Where(d => !incomingIds.Contains(d.Id))
-                               .ToList())
+            if (existingTurSkabelon == null)
             {
-                turSkabelon.Dage!.Remove(dag);
+                return NotFound();
             }
 
-            // 3b) Opdater eksisterende dage (Id > 0)
-            foreach (var dagDto in dto.Dage.Where(d => d.Id > 0))
+            if (id != turSkabelonModel.Id)
             {
-                var dagEntity = turSkabelon.Dage!
-                    .Single(d => d.Id == dagDto.Id);
-
-                dagEntity.Titel = dagDto.Titel;
-                dagEntity.Beskrivelse = dagDto.Beskrivelse;
-                dagEntity.Aktiviteter = dagDto.Aktiviteter;
-                dagEntity.Måltider = dagDto.Måltider;
-                dagEntity.Overnatning = dagDto.Overnatning;
-                dagEntity.Sekvens = dagDto.Sekvens;
-                dagEntity.RowVersion = dagDto.RowVersion;
+                return BadRequest();
             }
 
-            // 3c) Tilføj nye dage (Id == 0)
-            foreach (var dagDto in dto.Dage.Where(d => d.Id == 0))
-            {
-                turSkabelon.Dage!.Add(new DagSkabelonModel
-                {
-                    Titel = dagDto.Titel,
-                    Beskrivelse = dagDto.Beskrivelse,
-                    Aktiviteter = dagDto.Aktiviteter,
-                    Måltider = dagDto.Måltider,
-                    Overnatning = dagDto.Overnatning,
-                    Sekvens = dagDto.Sekvens,
-                });
-            }
+            existingTurSkabelon.Titel = turSkabelonModel.Titel;
+            existingTurSkabelon.Beskrivelse = turSkabelonModel.Beskrivelse;
+            existingTurSkabelon.Pris = turSkabelonModel.Pris;
+            existingTurSkabelon.DagTurSkabelon = turSkabelonModel.DagTurSkabelon;
+            existingTurSkabelon.RejseplanTurSkabelon = turSkabelonModel.RejseplanTurSkabelon;
+            skabelonDbContext.Entry(existingTurSkabelon).State = EntityState.Modified;
+            
+            await skabelonDbContext.SaveChangesAsync();
 
-            // 4) Persistér alt i én transaktion
-            try
-            {
-                // Marker aggregate som opdateret
-                _turSkabelonRepository.Update(turSkabelon);
-                await _turSkabelonRepository.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return Conflict("Data er blevet ændret af en anden bruger. Hent venligst det nyeste.");
-            }
-
-            return NoContent();
+            return Ok(existingTurSkabelon);
         }
 
 
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id, byte[] RowVersion)
+        public async Task<IActionResult> Delete(int id)
         {
-            var existing = await _turSkabelonRepository.GetByIdAsync(id);
-            if (existing == null)
+            var turSkabelon = await skabelonDbContext.TurSkabelon.FindAsync(id);
+            if (turSkabelon == null)
+            {
                 return NotFound();
-
-            await _turSkabelonRepository.DeleteAsync(existing);
+            }
+            skabelonDbContext.TurSkabelon.Remove(turSkabelon);
+            await skabelonDbContext.SaveChangesAsync();
             return NoContent();
-            //// 1) Find og tjek eksistens
-            //var turSkabelon = await _turSkabelonRepository.GetByIdAsync(id);
-            //if (turSkabelon == null)
-            //    throw new KeyNotFoundException($"Turskabelon med id {id} ikke fundet.");
-
-            //// 2) Sæt RowVersion til det, klienten kom med
-            //turSkabelon.RowVersion = originalRowVersion;
-
-            //// 3) Kald repository og fang concurrency–fejl
-            //try
-            //{
-            //    await _turSkabelonRepository.DeleteAsync(turSkabelon);
-            //}
-            //catch (Exception)
-            //{
-            //    throw new(
-            //        $"Turskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
-            //}
         }
 
 

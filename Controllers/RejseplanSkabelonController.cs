@@ -17,83 +17,38 @@ namespace TANE.Skabelon.Api.Controllers
 
         public RejseplanSkabelonController(IGenericRepository<RejseplanSkabelonModel> genericRepository, IMapper mapper)
         {
-            _rejseplanSkabelonRepository = genericRepository;
-            _mapper = mapper;
+            throw new NotImplementedException();
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RejseplanSkabelonReadDto>>> GetAll()
         {
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetAllAsync();
-            return Ok(_mapper.Map<IEnumerable<RejseplanSkabelonReadDto>>(rejseplanSkabelon));
+            throw new NotImplementedException();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<RejseplanSkabelonReadDto>> GetById(int id)
         {
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdWithIncludeAsync(id, t => t.TurSkabeloner);
-            if (rejseplanSkabelon == null)
-                return NotFound();
-            return Ok(_mapper.Map<RejseplanSkabelonReadDto>(rejseplanSkabelon));
+            throw new NotImplementedException();
         }
 
         [HttpPost]
         public async Task<ActionResult<RejseplanSkabelonReadDto>> Create(RejseplanSkabelonCreateDto rejseplanSkabelonCreateDto)
         {
-            var rejseplanSkabelon = _mapper.Map<RejseplanSkabelonModel>(rejseplanSkabelonCreateDto);
-            await _rejseplanSkabelonRepository.AddAsync(rejseplanSkabelon);
-
-            return CreatedAtAction(nameof(GetById), new {id = rejseplanSkabelon.Id},
-                _mapper.Map<RejseplanSkabelonReadDto>(rejseplanSkabelon));
+            throw new NotImplementedException();
         }
         
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, RejseplanSkabelonUpdateDto rejseplanSkabelonUpdateDto)
         {
-            if (id != rejseplanSkabelonUpdateDto.Id)
-                return BadRequest();
-
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
-            if (rejseplanSkabelon == null)
-                return NotFound();
-            var rs = _mapper.Map(rejseplanSkabelonUpdateDto, rejseplanSkabelon);
-            await _rejseplanSkabelonRepository.UpdateAsync(rs);
-            return Ok();
+            throw new NotImplementedException();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id) 
+        public async Task<IActionResult> Delete(int id)
         {
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
-            if (rejseplanSkabelon == null)
-              {
-                return NotFound();
-}
-            await _rejseplanSkabelonRepository.DeleteAsync(rejseplanSkabelon);
-       
-            return NoContent();
+            throw new NotImplementedException();
         }
-        //public async Task DeleteRejseplanSkabelonModelAsync(int id, byte[] originalRowVersion)
-        //{
-        //    // 1) Find og tjek eksistens
-        //    var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
-        //    if (rejseplanSkabelon == null)
-        //        throw new KeyNotFoundException($"Rejseplanskabelon med id {id} ikke fundet.");
-
-        //    // 2) Sæt RowVersion til det, klienten kom med
-        //    rejseplanSkabelon.RowVersion = originalRowVersion;
-
-        //    // 3) Kald repository og fang concurrency–fejl
-        //    try
-        //    {
-        //        await _rejseplanSkabelonRepository.DeleteAsync(rejseplanSkabelon);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw new(
-        //            $"Rejseplanskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
-        //    }
-        //}
     }
  }
     
