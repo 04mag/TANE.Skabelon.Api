@@ -38,7 +38,7 @@ namespace TANE.Skabelon.Api.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<ICollection<RejseplanSkabelonModel>>> GetById(int id)
+        public async Task<ActionResult<RejseplanSkabelonModel>> GetById(int id)
         {
             using (var skabelonDbContext = new SkabelonDbContext(options))
             {
