@@ -94,6 +94,48 @@ namespace TANE.Skabelon.Api.Context
                    DagSkabelonId = 2,
                    TurSkabelonId = 2,
                    Order = 2
+               },
+               new DagTurSkabelon
+               {
+                   DagSkabelonId = 1,
+                   TurSkabelonId = 2,
+                   Order = 1
+               }
+            );
+
+            modelBuilder.Entity<RejseplanSkabelonModel>().HasData(
+               new RejseplanSkabelonModel
+               {
+                   Id = 1,
+                   Titel = "Rejseplan 1",
+                   Beskrivelse = "Beskrivelse for Rejseplan 1"
+               },
+               new RejseplanSkabelonModel
+               {
+                   Id = 2,
+                   Titel = "Rejseplan 2",
+                   Beskrivelse = "Beskrivelse for Rejseplan 2"
+               }
+            );
+
+            modelBuilder.Entity<RejseplanTurSkabelon>().HasData(
+               new RejseplanTurSkabelon
+               {
+                   RejseplanSkabelonId = 1,
+                   TurSkabelonId = 1,
+                   Order = 1
+               },
+               new RejseplanTurSkabelon
+               {
+                   RejseplanSkabelonId = 2,
+                   TurSkabelonId = 2,
+                   Order = 1
+               },
+               new RejseplanTurSkabelon
+               {
+                   RejseplanSkabelonId = 2,
+                   TurSkabelonId = 1,
+                   Order = 2
                }
             );
         }
