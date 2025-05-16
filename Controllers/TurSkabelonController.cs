@@ -131,7 +131,11 @@ namespace TANE.Skabelon.Api.Controllers
                         // Remove any DagTurSkabelon that are no longer in the updated model  
                         existingTurSkabelon.DagTurSkabelon.RemoveAll(d => !turSkabelonModel.DagTurSkabelon.Any(updated => updated.DagSkabelonId == d.DagSkabelonId));
 
+                        // Save changes to the database
                         await skabelonDbContext.SaveChangesAsync();
+
+                        // Commit the transaction
+                        await contextTransaction.CommitAsync();
 
                         return Ok(existingTurSkabelon);
                     }

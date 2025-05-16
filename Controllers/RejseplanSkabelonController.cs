@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
 using TANE.Skabelon.Api.GenericRepositories;
+using Microsoft.Extensions.Options;
+using TANE.Skabelon.Api.Context;
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -12,42 +14,165 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class RejseplanSkabelonController : ControllerBase
     {
-        private readonly IGenericRepository<RejseplanSkabelonModel> _rejseplanSkabelonRepository;
-        private readonly IMapper _mapper;
+        private readonly DbContextOptions<SkabelonDbContext> options;
 
-        public RejseplanSkabelonController(IGenericRepository<RejseplanSkabelonModel> genericRepository, IMapper mapper)
+        public RejseplanSkabelonController(DbContextOptions<SkabelonDbContext> options)
         {
-            throw new NotImplementedException();
+            this.options = options;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RejseplanSkabelonReadDto>>> GetAll()
+        public async Task<ActionResult<ICollection<RejseplanSkabelonModel>>> GetAll()
         {
-            throw new NotImplementedException();
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    return Ok(await skabelonDbContext.RejseplanSkabelon.Include(x => x.RejseplanTurSkabelon).ThenInclude(x => x.TurSkabelon).ToListAsync());
+                }
+                catch
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<RejseplanSkabelonReadDto>> GetById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<ICollection<RejseplanSkabelonModel>>> GetById(int id)
         {
-            throw new NotImplementedException();
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    var result = await skabelonDbContext.RejseplanSkabelon.Include(x => x.RejseplanTurSkabelon).ThenInclude(x => x.TurSkabelon).FirstOrDefaultAsync(x => x.Id == id);
+
+                    if (result == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult<RejseplanSkabelonReadDto>> Create(RejseplanSkabelonCreateDto rejseplanSkabelonCreateDto)
+        public async Task<ActionResult<RejseplanSkabelonModel>> Create(RejseplanSkabelonModel rejseplanSkabelonModel)
         {
-            throw new NotImplementedException();
-        }
-        
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, RejseplanSkabelonUpdateDto rejseplanSkabelonUpdateDto)
-        {
-            throw new NotImplementedException();
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    skabelonDbContext.RejseplanSkabelon.Add(rejseplanSkabelonModel);
+
+                    await skabelonDbContext.SaveChangesAsync();
+
+                    return CreatedAtAction(nameof(GetById), new { id = rejseplanSkabelonModel.Id }, rejseplanSkabelonModel);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
-        [HttpDelete("{id}")]
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<RejseplanSkabelonModel>> Update(int id, RejseplanSkabelonModel rejseplanSkabelonModel)
+        {
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+
+                    try
+                    {
+                        var existingRejseplanSkabelon = await skabelonDbContext.RejseplanSkabelon.Include(t => t.RejseplanTurSkabelon).ThenInclude(t => t.TurSkabelon).FirstOrDefaultAsync(t => t.Id == id);
+
+                        if (existingRejseplanSkabelon == null)
+                        {
+                            return NotFound();
+                        }
+
+                        if (id != rejseplanSkabelonModel.Id)
+                        {
+                            return BadRequest();
+                        }
+
+                        //Update the existing TurSkabelon properties
+                        existingRejseplanSkabelon.Titel = rejseplanSkabelonModel.Titel;
+                        existingRejseplanSkabelon.Beskrivelse = rejseplanSkabelonModel.Beskrivelse;
+
+                        // Update order for each DagTurSkabelon  
+                        foreach (var rejseplanTur in rejseplanSkabelonModel.RejseplanTurSkabelon)
+                        {
+                            var existingRejseplanTur = existingRejseplanSkabelon.RejseplanTurSkabelon.FirstOrDefault(d => d.TurSkabelonId == rejseplanTur.TurSkabelonId);
+                            if (existingRejseplanTur != null)
+                            {
+                                existingRejseplanTur.Order = rejseplanTur.Order;
+                            }
+                            else
+                            {
+                                existingRejseplanSkabelon.RejseplanTurSkabelon.Add(new RejseplanTurSkabelon
+                                {
+                                    TurSkabelonId = rejseplanTur.TurSkabelonId,
+                                    Order = rejseplanTur.Order
+                                });
+                            }
+                        }
+
+                        // Remove any DagTurSkabelon that are no longer in the updated model  
+                        existingRejseplanSkabelon.RejseplanTurSkabelon.RemoveAll(d => !rejseplanSkabelonModel.RejseplanTurSkabelon.Any(updated => updated.TurSkabelonId == d.TurSkabelonId));
+
+                        // Save changes to the database
+                        await skabelonDbContext.SaveChangesAsync();
+
+                        // Commit the transaction
+                        await contextTransaction.CommitAsync();
+
+                        return Ok(existingRejseplanSkabelon);
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        return Conflict("Concurrency conflict occurred while updating the TurSkabelon.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+                }
+            }
+        }
+
+
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            throw new NotImplementedException();
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    var rejseSkabelon = await skabelonDbContext.RejseplanSkabelon.FindAsync(id);
+                    if (rejseSkabelon == null)
+                    {
+                        return NotFound();
+                    }
+                    skabelonDbContext.RejseplanSkabelon.Remove(rejseSkabelon);
+                    await skabelonDbContext.SaveChangesAsync();
+                    return NoContent();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
     }
  }
