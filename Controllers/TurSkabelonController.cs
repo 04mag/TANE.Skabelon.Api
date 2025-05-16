@@ -29,14 +29,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    var result = await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync();
-
-                    foreach (var turSkabelon in result)
-                    {
-                        turSkabelon.RejseplanTurSkabelon!.OrderBy(r => r.Order);
-                    }
-
-                    return Ok(result);
+                    return Ok(await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync());
                 }
                 catch
                 {
@@ -58,8 +51,6 @@ namespace TANE.Skabelon.Api.Controllers
                     {
                         return NotFound();
                     }
-
-                    result.RejseplanTurSkabelon!.OrderBy(r => r.Order);
 
                     return Ok(result);
                 }
