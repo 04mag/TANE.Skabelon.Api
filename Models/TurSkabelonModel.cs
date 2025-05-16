@@ -13,11 +13,8 @@ namespace TANE.Skabelon.Api.Models
 
         public double Pris { get; set; }
 
-        // Fremmednøgle og relation
-        public List<DagSkabelonModel>? Dage { get; set; }    
-        
-        public List<RejseplanSkabelonModel>? RejseplanSkabeloner { get; set; }
+        public ICollection<DagTurSkabelon> DagTurSkabelon { get; set; }
 
-        public int Sekvens { get; set; }
+        public ICollection<RejseplanTurSkabelon>? RejseplanTurSkabelon { get; set; }
     }
 }

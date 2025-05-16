@@ -14,10 +14,6 @@ namespace TANE.Skabelon.Api.Models
 
         public string Overnatning { get; set; }
 
-        public int Sekvens { get; set; }
-        //[JsonIgnore]
-        //  public List<TurSkabelonModel>? Tur { get; set; }
-
-
+        public ICollection<DagTurSkabelon> DagTurSkabelon { get; set; }
     }
 }

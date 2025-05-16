@@ -7,9 +7,6 @@ namespace TANE.Skabelon.Api.Models
         public string Titel { get; set; }
         public string Beskrivelse { get; set; }
         // Relation til ture
-        public List<TurSkabelonModel>? TurSkabeloner { get; set; }
-
-    
-  
+        public ICollection<RejseplanTurSkabelon>? RejseplanTurSkabelon { get; set; }
     }
 }
