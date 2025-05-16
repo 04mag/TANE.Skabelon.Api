@@ -1,9 +1,9 @@
-﻿using AutoMapper;
-using TANE.Skabelon.Api.Dtos;
+﻿using TANE.Skabelon.Api.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.GenericRepositories;
 using TANE.Skabelon.Api.Models;
+using TANE.Skabelon.Api.Context;
 
 
 namespace TANE.Skabelon.Api.Controllers
@@ -12,88 +12,70 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class DagSkabelonController : ControllerBase
     {
-        private readonly IGenericRepository<DagSkabelonModel> _dagSkabelonRepository;
-        private readonly IMapper _mapper;
+        private readonly SkabelonDbContext skabelonDbContext;
+        
 
-        public DagSkabelonController(IGenericRepository<DagSkabelonModel> genericRepository, IMapper mapper)
+        public DagSkabelonController(SkabelonDbContext skabelonDbContext)
         {
-            _dagSkabelonRepository = genericRepository;
-            _mapper = mapper;
+            this.skabelonDbContext = skabelonDbContext;
         }
-        //Søren revies
+       
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DagSkabelonReadDto>>> GetAll()
+        public async Task<ActionResult<ICollection<DagSkabelonModel>>> GetAll()
         {
-            var dagSkabeloner = await _dagSkabelonRepository.GetAllAsync();
-            return Ok(_mapper.Map<IEnumerable<DagSkabelonReadDto>>(dagSkabeloner));
+            return Ok(await skabelonDbContext.DagSkabelon.ToListAsync());
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<DagSkabelonReadDto>> GetById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<DagSkabelonModel>> GetById(int id)
         {
-            var dagSkabeloner = await _dagSkabelonRepository.GetByIdAsync(id);
-            if (dagSkabeloner == null)
+            var result = await skabelonDbContext.DagSkabelon.FirstOrDefaultAsync(x => x.Id == id);
+            if (result == null)
+            {
                 return NotFound();
-            return Ok(_mapper.Map<DagSkabelonReadDto>(dagSkabeloner));
-        }
+            }
+            return Ok(result);
 
+        }
         //Søren review
         [HttpPost]
-        public async Task<ActionResult<DagSkabelonReadDto>> Create([FromBody] DagSkabelonCreateDto dto)
+        public async Task<ActionResult<DagSkabelonModel>> Create(DagSkabelonModel dagSkabelonModel)
         {
-            var dagSkabelonEntity = _mapper.Map<DagSkabelonModel>(dto);
-            await _dagSkabelonRepository.AddAsync(dagSkabelonEntity);
+                skabelonDbContext.DagSkabelon.Add(dagSkabelonModel);
 
-            var readDto = _mapper.Map<DagSkabelonReadDto>(dagSkabelonEntity);
-            return CreatedAtAction(nameof(GetById),new { id = readDto.Id}, _mapper.Map<DagSkabelonReadDto> (readDto));
-            
-        }
+                await skabelonDbContext.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetById), new { id = dagSkabelonModel.Id }, dagSkabelonModel);
+
+
+         }
         //Søren review
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id,[FromBody] DagSkabelonUpdateDto dto)
+        public async Task<ActionResult<DagSkabelonModel>> Update(int id,DagSkabelonModel dagSkabelonModel)
         {
-            var existing = await _dagSkabelonRepository.GetByIdAsync(id);
-            if (existing == null)
+            var existingDagSkabelon = await skabelonDbContext.DagSkabelon.FindAsync(id);
+            if (existingDagSkabelon == null)
+            {
                 return NotFound();
+            }
+            if (id != dagSkabelonModel.Id)
+            {
+                return BadRequest();
+            }
 
-           var ds = _mapper.Map(dto, existing);
-            await _dagSkabelonRepository.UpdateAsync(ds);
-            return NoContent();
+            throw new NotImplementedException("Update method not implemented yet.");
+
+
         }
         //Søren review
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id, [FromQuery] byte[] rowVersion)
         {
-            var existing = await _dagSkabelonRepository.GetByIdAsync(id);
-            if ( existing == null)
-                return NotFound();
-
-            await _dagSkabelonRepository.DeleteAsync(existing);
-                return NoContent();
+            throw new NotImplementedException("Update method not implemented yet.");
         }
 
 
-        //public async Task DeleteDagSkabelonModelAsync(int id, byte[] originalRowVersion)
-        //{
-        //    // 1) Find og tjek eksistens
-        //    var dagSkabelon = await _dagSkabelonRepository.GetByIdAsync(id);
-        //    if (dagSkabelon == null)
-        //        throw new KeyNotFoundException($"Dagskabelon med id {id} ikke fundet.");
-
-        //    // 2) Sæt RowVersion til det, klienten kom med
-        //    dagSkabelon.RowVersion = originalRowVersion;
-
-        //    // 3) Kald repository og fang concurrency–fejl
-        //    try
-        //    {
-        //        await _dagSkabelonRepository.DeleteAsync(dagSkabelon);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw new(
-        //            $"Dagskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
-        //    }
-        //}
+        
 
 
     }
