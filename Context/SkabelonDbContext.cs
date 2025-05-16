@@ -10,6 +10,8 @@ namespace TANE.Skabelon.Api.Context
         public DbSet<RejseplanSkabelonModel> RejseplanSkabelon { get; set; }
         public DbSet<TurSkabelonModel> TurSkabelon { get; set; }
         public DbSet<DagSkabelonModel> DagSkabelon { get; set; }
+        public DbSet<DagTurSkabelon> DagTurSkabelon { get; set; }
+        public DbSet<RejseplanTurSkabelon> RejseplanTurSkabelon { get; set; }
 
 
         // Delete dagskabelon, hvis den fjernes fra turskabelon

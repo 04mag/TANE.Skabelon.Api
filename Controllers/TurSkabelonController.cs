@@ -6,6 +6,7 @@ using TANE.Skabelon.Api.Models;
 using TANE.Skabelon.Api.GenericRepositories;
 using Microsoft.IdentityModel.Tokens;
 using TANE.Skabelon.Api.Context;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -14,83 +15,165 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class TurSkabelonController : ControllerBase
     {
-        private readonly SkabelonDbContext skabelonDbContext;
+        private readonly DbContextOptions<SkabelonDbContext> options;
 
-        public TurSkabelonController(SkabelonDbContext skabelonDbContext)
+        public TurSkabelonController(DbContextOptions<SkabelonDbContext> options)
         {
-            this.skabelonDbContext = skabelonDbContext;
+            this.options = options;
         }
 
         [HttpGet]
         public async Task<ActionResult<ICollection<TurSkabelonModel>>> GetAll()
         {
-            return Ok(await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync());
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    return Ok(await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync());
+                }
+                catch
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<ICollection<TurSkabelonModel>>> GetById(int id)
         {
-            var result = await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).FirstOrDefaultAsync(x => x.Id == id);
-
-            if (result == null)
+            using (var skabelonDbContext = new SkabelonDbContext(options))
             {
-                return NotFound();
-            }
+                try
+                {
+                    var result = await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).FirstOrDefaultAsync(x => x.Id == id);
 
-            return Ok(result);
+                    if (result == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
         [HttpPost]
         public async Task<ActionResult<TurSkabelonModel>> Create(TurSkabelonModel turSkabelonModel)
         {
-            skabelonDbContext.TurSkabelon.Add(turSkabelonModel);
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    skabelonDbContext.TurSkabelon.Add(turSkabelonModel);
 
-            await skabelonDbContext.SaveChangesAsync();
+                    await skabelonDbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = turSkabelonModel.Id }, turSkabelonModel);
+                    return CreatedAtAction(nameof(GetById), new { id = turSkabelonModel.Id }, turSkabelonModel);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
         [HttpPut("{id:int}")]
         public async Task<ActionResult<TurSkabelonModel>> Update(int id, TurSkabelonModel turSkabelonModel)
         {
-            var existingTurSkabelon = await skabelonDbContext.TurSkabelon.FindAsync(id);
-
-            if (existingTurSkabelon == null)
+            using (var skabelonDbContext = new SkabelonDbContext(options))
             {
-                return NotFound();
+                using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+                    TurSkabelonModel? existingTurSkabelon = null;
+                    try
+                    {
+                        existingTurSkabelon = await skabelonDbContext.TurSkabelon.Include(t => t.DagTurSkabelon).FirstOrDefaultAsync(t => t.Id == id);
+
+                        if (existingTurSkabelon == null)
+                        {
+                            return NotFound();
+                        }
+
+                        if (id != turSkabelonModel.Id)
+                        {
+                            return BadRequest();
+                        }
+
+                        //Update the existing TurSkabelon properties
+                        existingTurSkabelon.Titel = turSkabelonModel.Titel;
+                        existingTurSkabelon.Beskrivelse = turSkabelonModel.Beskrivelse;
+                        existingTurSkabelon.Pris = turSkabelonModel.Pris;
+
+                        // Update order for each DagTurSkabelon  
+                        foreach (var dagTur in turSkabelonModel.DagTurSkabelon)
+                        {
+                            var existingDagTur = existingTurSkabelon.DagTurSkabelon.FirstOrDefault(d => d.DagSkabelonId == dagTur.DagSkabelonId);
+                            if (existingDagTur != null)
+                            {
+                                existingDagTur.Order = dagTur.Order;
+                            }
+                            else
+                            {
+                                existingTurSkabelon.DagTurSkabelon.Add(new DagTurSkabelon
+                                {
+                                    DagSkabelonId = dagTur.DagSkabelonId,
+                                    Order = dagTur.Order
+                                });
+                            }
+                        }
+
+                        // Remove any DagTurSkabelon that are no longer in the updated model  
+                        existingTurSkabelon.DagTurSkabelon.RemoveAll(d => !turSkabelonModel.DagTurSkabelon.Any(updated => updated.DagSkabelonId == d.DagSkabelonId));
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+
+                    try
+                    {
+                        await skabelonDbContext.SaveChangesAsync();
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        return Conflict("Concurrency conflict occurred while updating the TurSkabelon.");
+                    }
+
+                    return Ok(existingTurSkabelon);
+                }
             }
-
-            if (id != turSkabelonModel.Id)
-            {
-                return BadRequest();
-            }
-
-            existingTurSkabelon.Titel = turSkabelonModel.Titel;
-            existingTurSkabelon.Beskrivelse = turSkabelonModel.Beskrivelse;
-            existingTurSkabelon.Pris = turSkabelonModel.Pris;
-            existingTurSkabelon.DagTurSkabelon = turSkabelonModel.DagTurSkabelon;
-            existingTurSkabelon.RejseplanTurSkabelon = turSkabelonModel.RejseplanTurSkabelon;
-            skabelonDbContext.Entry(existingTurSkabelon).State = EntityState.Modified;
-            
-            await skabelonDbContext.SaveChangesAsync();
-
-            return Ok(existingTurSkabelon);
         }
 
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var turSkabelon = await skabelonDbContext.TurSkabelon.FindAsync(id);
-            if (turSkabelon == null)
+            using (var skabelonDbContext = new SkabelonDbContext(options))
             {
-                return NotFound();
+                try
+                {
+                    var turSkabelon = await skabelonDbContext.TurSkabelon.FindAsync(id);
+                    if (turSkabelon == null)
+                    {
+                        return NotFound();
+                    }
+                    skabelonDbContext.TurSkabelon.Remove(turSkabelon);
+                    await skabelonDbContext.SaveChangesAsync();
+                    return NoContent();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
             }
-            skabelonDbContext.TurSkabelon.Remove(turSkabelon);
-            await skabelonDbContext.SaveChangesAsync();
-            return NoContent();
         }
-
-
     }
 }
