@@ -40,6 +40,60 @@ namespace TANE.Skabelon.Api.Context
                 .HasOne(ps => ps.TurSkabelon)
                 .WithMany(s => s.RejseplanTurSkabelon)
                 .HasForeignKey(ps => ps.TurSkabelonId);
+
+            // Seed test data  
+            modelBuilder.Entity<DagSkabelonModel>().HasData(
+               new DagSkabelonModel
+               {
+                   Id = 1,
+                   Titel = "Dag 1",
+                   Beskrivelse = "Beskrivelse for Dag 1",
+                   Aktiviteter = "Aktiviteter for Dag 1",
+                   Måltider = "Måltider for Dag 1",
+                   Overnatning = "Overnatning for Dag 1"
+               },
+               new DagSkabelonModel
+               {
+                   Id = 2,
+                   Titel = "Dag 2",
+                   Beskrivelse = "Beskrivelse for Dag 2",
+                   Aktiviteter = "Aktiviteter for Dag 2",
+                   Måltider = "Måltider for Dag 2",
+                   Overnatning = "Overnatning for Dag 2"
+               }
+            );
+
+            modelBuilder.Entity<TurSkabelonModel>().HasData(
+               new TurSkabelonModel
+               {
+                   Id = 1,
+                   Titel = "Tur 1",
+                   Beskrivelse = "Beskrivelse for Tur 1",
+                   Pris = 100.0
+               },
+               new TurSkabelonModel
+               {
+                   Id = 2,
+                   Titel = "Tur 2",
+                   Beskrivelse = "Beskrivelse for Tur 2",
+                   Pris = 200.0
+               }
+            );
+
+            modelBuilder.Entity<DagTurSkabelon>().HasData(
+               new DagTurSkabelon
+               {
+                   DagSkabelonId = 1,
+                   TurSkabelonId = 1,
+                   Order = 1
+               },
+               new DagTurSkabelon
+               {
+                   DagSkabelonId = 2,
+                   TurSkabelonId = 2,
+                   Order = 2
+               }
+            );
         }
     }
 }   

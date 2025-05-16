@@ -90,10 +90,10 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
-                    TurSkabelonModel? existingTurSkabelon = null;
+                    
                     try
                     {
-                        existingTurSkabelon = await skabelonDbContext.DagSkabelon.Include(t => t.DagTurSkabelon).FirstOrDefaultAsync(t => t.Id == id);
+                        var existingTurSkabelon = await skabelonDbContext.TurSkabelon.Include(t => t.DagTurSkabelon).ThenInclude(t => t.DagSkabelon).FirstOrDefaultAsync(t => t.Id == id);
 
                         if (existingTurSkabelon == null)
                         {
@@ -130,23 +130,20 @@ namespace TANE.Skabelon.Api.Controllers
 
                         // Remove any DagTurSkabelon that are no longer in the updated model  
                         existingTurSkabelon.DagTurSkabelon.RemoveAll(d => !turSkabelonModel.DagTurSkabelon.Any(updated => updated.DagSkabelonId == d.DagSkabelonId));
+
+                        await skabelonDbContext.SaveChangesAsync();
+
+                        return Ok(existingTurSkabelon);
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        return Conflict("Concurrency conflict occurred while updating the DagSkabelon.");
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                         return StatusCode(StatusCodes.Status500InternalServerError);
                     }
-
-                    try
-                    {
-                        await skabelonDbContext.SaveChangesAsync();
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        return Conflict("Concurrency conflict occurred while updating the DagSkabelon.");
-                    }
-
-                    return Ok(existingTurSkabelon);
                 }
             }
         }
