@@ -158,7 +158,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    var dagSkabelon = await skabelonDbContext.FindAsync();
+                    var dagSkabelon = await skabelonDbContext.DagSkabelon.FindAsync(id);
                     if (dagSkabelon == null)
                     {
                         return NotFound();

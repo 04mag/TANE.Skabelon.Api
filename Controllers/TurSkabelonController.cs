@@ -29,7 +29,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    return Ok(await skabelonDbContext.DagSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync());
+                    return Ok(await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync());
                 }
                 catch
                 {
@@ -45,7 +45,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    var result = await skabelonDbContext.DagSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).FirstOrDefaultAsync(x => x.Id == id);
+                    var result = await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).FirstOrDefaultAsync(x => x.Id == id);
 
                     if (result == null)
                     {
@@ -69,7 +69,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    skabelonDbContext.DagSkabelon.Add(turSkabelonModel);
+                    skabelonDbContext.TurSkabelon.Add(turSkabelonModel);
 
                     await skabelonDbContext.SaveChangesAsync();
 
