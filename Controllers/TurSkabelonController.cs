@@ -29,7 +29,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    return Ok(await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync());
+                    return Ok(await skabelonDbContext.DagSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).ToListAsync());
                 }
                 catch
                 {
@@ -45,7 +45,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    var result = await skabelonDbContext.TurSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).FirstOrDefaultAsync(x => x.Id == id);
+                    var result = await skabelonDbContext.DagSkabelon.Include(x => x.DagTurSkabelon).ThenInclude(x => x.DagSkabelon).FirstOrDefaultAsync(x => x.Id == id);
 
                     if (result == null)
                     {
@@ -69,7 +69,7 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    skabelonDbContext.TurSkabelon.Add(turSkabelonModel);
+                    skabelonDbContext.DagSkabelon.Add(turSkabelonModel);
 
                     await skabelonDbContext.SaveChangesAsync();
 
@@ -93,7 +93,7 @@ namespace TANE.Skabelon.Api.Controllers
                     TurSkabelonModel? existingTurSkabelon = null;
                     try
                     {
-                        existingTurSkabelon = await skabelonDbContext.TurSkabelon.Include(t => t.DagTurSkabelon).FirstOrDefaultAsync(t => t.Id == id);
+                        existingTurSkabelon = await skabelonDbContext.DagSkabelon.Include(t => t.DagTurSkabelon).FirstOrDefaultAsync(t => t.Id == id);
 
                         if (existingTurSkabelon == null)
                         {
@@ -105,7 +105,7 @@ namespace TANE.Skabelon.Api.Controllers
                             return BadRequest();
                         }
 
-                        //Update the existing TurSkabelon properties
+                        //Update the existing DagSkabelon properties
                         existingTurSkabelon.Titel = turSkabelonModel.Titel;
                         existingTurSkabelon.Beskrivelse = turSkabelonModel.Beskrivelse;
                         existingTurSkabelon.Pris = turSkabelonModel.Pris;
@@ -143,7 +143,7 @@ namespace TANE.Skabelon.Api.Controllers
                     }
                     catch (DbUpdateConcurrencyException)
                     {
-                        return Conflict("Concurrency conflict occurred while updating the TurSkabelon.");
+                        return Conflict("Concurrency conflict occurred while updating the DagSkabelon.");
                     }
 
                     return Ok(existingTurSkabelon);
@@ -159,12 +159,12 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    var turSkabelon = await skabelonDbContext.TurSkabelon.FindAsync(id);
+                    var turSkabelon = await skabelonDbContext.DagSkabelon.FindAsync(id);
                     if (turSkabelon == null)
                     {
                         return NotFound();
                     }
-                    skabelonDbContext.TurSkabelon.Remove(turSkabelon);
+                    skabelonDbContext.DagSkabelon.Remove(turSkabelon);
                     await skabelonDbContext.SaveChangesAsync();
                     return NoContent();
                 }
