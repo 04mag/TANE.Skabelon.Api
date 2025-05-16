@@ -12,6 +12,14 @@ namespace TANE.Skabelon.Api.Context
         public DbSet<DagSkabelonModel> DagSkabelon { get; set; }
 
 
-        
+        // Delete dagskabelon, hvis den fjernes fra turskabelon
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<TurSkabelonModel>()
+                .HasMany(t => t.Dage)
+                .WithOne()
+                .OnDelete(DeleteBehavior.Cascade);
+            
+        }
     }
 }

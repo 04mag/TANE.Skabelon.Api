@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
 using TANE.Skabelon.Api.GenericRepositories;
+using Microsoft.IdentityModel.Tokens;
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -51,23 +52,76 @@ namespace TANE.Skabelon.Api.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] TurSkabelonUpdateDto dto)
         {
             if (id != dto.Id)
-                return BadRequest();
+                return BadRequest("URL-id og DTO-id skal være ens.");
 
-            var turSkabelon = await _turSkabelonRepository.GetByIdWithIncludeAsync(
-                id,include => include.Dage);
+            // 2a) Hent aggregate inkl. alle dage
+            var turSkabelon = await _turSkabelonRepository
+                .GetByIdWithIncludeAsync(id, ts => ts.Dage!);
             if (turSkabelon == null)
-                throw new KeyNotFoundException($"Tur {id} ikke fundet.");
+                return NotFound($"TurSkabelon med id={id} ikke fundet.");
+
+            // 2b) Opdater parent-felter
+            turSkabelon.Titel = dto.Titel;
+            turSkabelon.Beskrivelse = dto.Beskrivelse;
+            turSkabelon.Pris = dto.Pris;
+            turSkabelon.Sekvens = dto.Sekvens;
+
+            // 3) Diff nested Dage
+            var incomingIds = dto.Dage
+                                 .Where(d => d.Id > 0)
+                                 .Select(d => d.Id)
+                                 .ToHashSet();
+
+            // 3a) Slet de dage, som DTO’en ikke længere refererer til
+            foreach (var dag in turSkabelon.Dage!
+                               .Where(d => !incomingIds.Contains(d.Id))
+                               .ToList())
+            {
+                turSkabelon.Dage!.Remove(dag);
+            }
+
+            // 3b) Opdater eksisterende dage (Id > 0)
+            foreach (var dagDto in dto.Dage.Where(d => d.Id > 0))
+            {
+                var dagEntity = turSkabelon.Dage!
+                    .Single(d => d.Id == dagDto.Id);
+
+                dagEntity.Titel = dagDto.Titel;
+                dagEntity.Beskrivelse = dagDto.Beskrivelse;
+                dagEntity.Aktiviteter = dagDto.Aktiviteter;
+                dagEntity.Måltider = dagDto.Måltider;
+                dagEntity.Overnatning = dagDto.Overnatning;
+                dagEntity.Sekvens = dagDto.Sekvens;
+                dagEntity.RowVersion = dagDto.RowVersion;
+            }
+
+            // 3c) Tilføj nye dage (Id == 0)
+            foreach (var dagDto in dto.Dage.Where(d => d.Id == 0))
+            {
+                turSkabelon.Dage!.Add(new DagSkabelonModel
+                {
+                    Titel = dagDto.Titel,
+                    Beskrivelse = dagDto.Beskrivelse,
+                    Aktiviteter = dagDto.Aktiviteter,
+                    Måltider = dagDto.Måltider,
+                    Overnatning = dagDto.Overnatning,
+                    Sekvens = dagDto.Sekvens,
+                });
+            }
+
+            // 4) Persistér alt i én transaktion
             try
             {
-               var ts = _mapper.Map(dto, turSkabelon);
-                await _turSkabelonRepository.UpdateAsync(ts);
-                return NoContent();
+                // Marker aggregate som opdateret
+                _turSkabelonRepository.Update(turSkabelon);
+                await _turSkabelonRepository.SaveChangesAsync();
             }
-
             catch (DbUpdateConcurrencyException)
             {
-                throw new Exception($"The entity {typeof(BaseEntity).Name} was modified by another user.");
+                return Conflict("Data er blevet ændret af en anden bruger. Hent venligst det nyeste.");
             }
+
+            return NoContent();
         }
 
 
