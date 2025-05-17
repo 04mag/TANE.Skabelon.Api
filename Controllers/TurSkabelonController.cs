@@ -67,18 +67,47 @@ namespace TANE.Skabelon.Api.Controllers
         {
             using (var skabelonDbContext = new SkabelonDbContext(options))
             {
-                try
+                using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted))
                 {
-                    skabelonDbContext.TurSkabelon.Add(turSkabelonModel);
+                    try
+                    {
+                        foreach (var dagTur in turSkabelonModel.DagTurSkabelon)
+                        {
+                            if (dagTur.DagSkabelon != null && dagTur.DagSkabelon.Id > 0)
+                            {
+                                var dagSkabelon = dagTur.DagSkabelon;
+                                dagTur.DagSkabelon = null;
+                            }
+                            else if (dagTur.DagSkabelon != null && dagTur.DagSkabelon.Id == 0)
+                            {
+                                throw new Exception("DagSkabelon must already exist");
+                            }
 
-                    await skabelonDbContext.SaveChangesAsync();
+                            if (dagTur.TurSkabelon != null)
+                            {
+                                throw new Exception("TurSkabelon must be null");
+                            }
+                        }
 
-                    return CreatedAtAction(nameof(GetById), new { id = turSkabelonModel.Id }, turSkabelonModel);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    return StatusCode(StatusCodes.Status500InternalServerError);
+                        skabelonDbContext.TurSkabelon.Add(turSkabelonModel);
+
+                        await skabelonDbContext.SaveChangesAsync();
+
+                        var createdTurSkabelon = await skabelonDbContext.TurSkabelon
+                            .Include(x => x.DagTurSkabelon)
+                                .ThenInclude(dt => dt.DagSkabelon)
+                            .FirstOrDefaultAsync(x => x.Id == turSkabelonModel.Id);
+
+                        await contextTransaction.CommitAsync();
+
+                        return CreatedAtAction(nameof(GetById), new { id = turSkabelonModel.Id }, createdTurSkabelon);
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
                 }
             }
         }
