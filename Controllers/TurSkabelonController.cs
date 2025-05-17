@@ -189,12 +189,12 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 try
                 {
-                    var turSkabelon = await skabelonDbContext.DagSkabelon.FindAsync(id);
+                    var turSkabelon = await skabelonDbContext.TurSkabelon.FindAsync(id);
                     if (turSkabelon == null)
                     {
                         return NotFound();
                     }
-                    skabelonDbContext.DagSkabelon.Remove(turSkabelon);
+                    skabelonDbContext.TurSkabelon.Remove(turSkabelon);
                     await skabelonDbContext.SaveChangesAsync();
                     return NoContent();
                 }
