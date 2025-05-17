@@ -146,6 +146,8 @@ namespace TANE.Skabelon.Api.Controllers
                             if (existingRejseplanTur != null)
                             {
                                 existingRejseplanTur.Order = rejseplanTur.Order;
+                                //For concurrency check
+                                skabelonDbContext.Entry(existingRejseplanTur).Property(p => p.RowVersion).OriginalValue = rejseplanTur.RowVersion;
                             }
                             else
                             {

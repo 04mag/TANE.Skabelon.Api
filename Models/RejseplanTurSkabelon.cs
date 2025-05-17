@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace TANE.Skabelon.Api.Models
 {
@@ -10,5 +11,7 @@ namespace TANE.Skabelon.Api.Models
         [JsonIgnore]
         public RejseplanSkabelonModel? RejseplanSkabelon { get; set; }
         public int Order { get; set; } //tracks order
+        [Timestamp]
+        public byte[]? RowVersion { get; set; } = null;
     }
 }

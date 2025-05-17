@@ -150,6 +150,8 @@ namespace TANE.Skabelon.Api.Controllers
                             if (existingDagTur != null)
                             {
                                 existingDagTur.Order = dagTur.Order;
+                                //For concurrency check
+                                skabelonDbContext.Entry(existingDagTur).Property(p => p.RowVersion).OriginalValue = dagTur.RowVersion;
                             }
                             else
                             {
