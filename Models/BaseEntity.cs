@@ -11,6 +11,6 @@ namespace TANE.Skabelon.Api.Models
         //public bool IsDeleted { get; set; } = false;
         //public DateTime? DeletedAt { get; set; }
         [Timestamp]
-        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+        public byte[]? RowVersion { get; set; } = null;
     }
 }

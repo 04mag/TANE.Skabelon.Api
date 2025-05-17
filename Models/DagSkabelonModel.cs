@@ -6,18 +6,15 @@ namespace TANE.Skabelon.Api.Models
 {
     public class DagSkabelonModel : BaseEntity
     {
-        public string Titel { get; set; }
-        public string Beskrivelse { get; set; }
+        public string Titel { get; set; } = string.Empty;
+        public string Beskrivelse { get; set; } = string.Empty;
 
-        public String Aktiviteter { get; set; }
-        public String Måltider { get; set; }
+        public string Aktiviteter { get; set; } = string.Empty;
+        public string Måltider { get; set; } = string.Empty;
 
-        public string Overnatning { get; set; }
+        public string Overnatning { get; set; } = string.Empty;
 
-        public int Sekvens { get; set; }
-        //[JsonIgnore]
-        //  public List<TurSkabelonModel>? Tur { get; set; }
-
-
+        [JsonIgnore]
+        public List<DagTurSkabelon> DagTurSkabelon { get; set; } = new List<DagTurSkabelon>();
     }
 }

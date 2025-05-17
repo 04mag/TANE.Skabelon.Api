@@ -42,7 +42,7 @@ namespace TANE.Skabelon.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TurSkabelon",
+                name: "DagSkabelon",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -75,7 +75,7 @@ namespace TANE.Skabelon.Api.Migrations
                     table.ForeignKey(
                         name: "FK_DagSkabelonModelTurSkabelonModel_TurSkabelon_TurId",
                         column: x => x.TurId,
-                        principalTable: "TurSkabelon",
+                        principalTable: "DagSkabelon",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -99,7 +99,7 @@ namespace TANE.Skabelon.Api.Migrations
                     table.ForeignKey(
                         name: "FK_RejseplanSkabelonModelTurSkabelonModel_TurSkabelon_TurSkabelonerId",
                         column: x => x.TurSkabelonerId,
-                        principalTable: "TurSkabelon",
+                        principalTable: "DagSkabelon",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -131,7 +131,7 @@ namespace TANE.Skabelon.Api.Migrations
                 name: "RejseplanSkabelon");
 
             migrationBuilder.DropTable(
-                name: "TurSkabelon");
+                name: "DagSkabelon");
         }
     }
 }

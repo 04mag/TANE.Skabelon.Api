@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 
 namespace TANE.Skabelon.Api.Models
@@ -7,17 +8,15 @@ namespace TANE.Skabelon.Api.Models
     {
         
         [Required, MaxLength(100)]
-        public string Titel { get; set; }
+        public string Titel { get; set; } = string.Empty;
 
-        public string Beskrivelse { get; set; }
+        public string Beskrivelse { get; set; } = string.Empty;
 
-        public double Pris { get; set; }
+        public double Pris { get; set; } = 0;
 
-        // Fremmednøgle og relation
-        public List<DagSkabelonModel>? Dage { get; set; }    
-        
-        public List<RejseplanSkabelonModel>? RejseplanSkabeloner { get; set; }
+        public List<DagTurSkabelon> DagTurSkabelon { get; set; } = new List<DagTurSkabelon>();
 
-        public int Sekvens { get; set; }
+        [JsonIgnore]
+        public List<RejseplanTurSkabelon>? RejseplanTurSkabelon { get; set; } = new List<RejseplanTurSkabelon>();
     }
 }

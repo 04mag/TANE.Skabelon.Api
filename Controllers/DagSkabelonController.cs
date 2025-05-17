@@ -1,9 +1,10 @@
-﻿using AutoMapper;
-using TANE.Skabelon.Api.Dtos;
+﻿using TANE.Skabelon.Api.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.GenericRepositories;
 using TANE.Skabelon.Api.Models;
+using TANE.Skabelon.Api.Context;
+using Microsoft.Extensions.Options;
 
 
 namespace TANE.Skabelon.Api.Controllers
@@ -12,88 +13,135 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class DagSkabelonController : ControllerBase
     {
-        private readonly IGenericRepository<DagSkabelonModel> _dagSkabelonRepository;
-        private readonly IMapper _mapper;
+        private readonly DbContextOptions<SkabelonDbContext> options;
 
-        public DagSkabelonController(IGenericRepository<DagSkabelonModel> genericRepository, IMapper mapper)
+        public DagSkabelonController(DbContextOptions<SkabelonDbContext> options)
         {
-            _dagSkabelonRepository = genericRepository;
-            _mapper = mapper;
+            this.options = options;
         }
-        //Søren revies
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DagSkabelonReadDto>>> GetAll()
+        public async Task<ActionResult<ICollection<DagSkabelonModel>>> GetAll()
         {
-            var dagSkabeloner = await _dagSkabelonRepository.GetAllAsync();
-            return Ok(_mapper.Map<IEnumerable<DagSkabelonReadDto>>(dagSkabeloner));
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    return Ok(await skabelonDbContext.DagSkabelon.ToListAsync());
+                }
+                catch
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<DagSkabelonReadDto>> GetById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<DagSkabelonModel>> GetById(int id)
         {
-            var dagSkabeloner = await _dagSkabelonRepository.GetByIdAsync(id);
-            if (dagSkabeloner == null)
-                return NotFound();
-            return Ok(_mapper.Map<DagSkabelonReadDto>(dagSkabeloner));
-        }
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    var result = await skabelonDbContext.DagSkabelon.FirstOrDefaultAsync(x => x.Id == id);
 
-        //Søren review
+                    if (result == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
+
+        }
+        
         [HttpPost]
-        public async Task<ActionResult<DagSkabelonReadDto>> Create([FromBody] DagSkabelonCreateDto dto)
+        public async Task<ActionResult<DagSkabelonModel>> Create(DagSkabelonModel dagSkabelonModel)
         {
-            var dagSkabelonEntity = _mapper.Map<DagSkabelonModel>(dto);
-            await _dagSkabelonRepository.AddAsync(dagSkabelonEntity);
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    skabelonDbContext.DagSkabelon.Add(dagSkabelonModel);
 
-            var readDto = _mapper.Map<DagSkabelonReadDto>(dagSkabelonEntity);
-            return CreatedAtAction(nameof(GetById),new { id = readDto.Id}, _mapper.Map<DagSkabelonReadDto> (readDto));
-            
+                    await skabelonDbContext.SaveChangesAsync();
+
+                    return CreatedAtAction(nameof(GetById), new { id = dagSkabelonModel.Id }, dagSkabelonModel);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
+
         }
-        //Søren review
+        
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id,[FromBody] DagSkabelonUpdateDto dto)
+        public async Task<ActionResult<DagSkabelonModel>> Update(int id,DagSkabelonModel dagSkabelonModel)
         {
-            var existing = await _dagSkabelonRepository.GetByIdAsync(id);
-            if (existing == null)
-                return NotFound();
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
+                    try
+                    {
+                        skabelonDbContext.Update(dagSkabelonModel);
 
-           var ds = _mapper.Map(dto, existing);
-            await _dagSkabelonRepository.UpdateAsync(ds);
-            return NoContent();
+                        await skabelonDbContext.SaveChangesAsync();
+
+                        var updatedEntity = await skabelonDbContext.DagSkabelon.FirstOrDefaultAsync(x => x.Id == id);
+
+                        contextTransaction.Commit();
+
+                        return Ok(updatedEntity);
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        return Conflict("Concurrency conflict occurred while updating the DagSkabelon.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+                }
+            }
         }
-        //Søren review
+        
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id, [FromQuery] byte[] rowVersion)
+        public async Task<IActionResult> Delete(int id)
         {
-            var existing = await _dagSkabelonRepository.GetByIdAsync(id);
-            if ( existing == null)
-                return NotFound();
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    var dagSkabelon = await skabelonDbContext.DagSkabelon.FindAsync(id);
+                    if (dagSkabelon == null)
+                    {
+                        return NotFound();
+                    }
+                    skabelonDbContext.Remove(dagSkabelon);
+                    await skabelonDbContext.SaveChangesAsync();
 
-            await _dagSkabelonRepository.DeleteAsync(existing);
-                return NoContent();
+                    return NoContent();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
 
-        //public async Task DeleteDagSkabelonModelAsync(int id, byte[] originalRowVersion)
-        //{
-        //    // 1) Find og tjek eksistens
-        //    var dagSkabelon = await _dagSkabelonRepository.GetByIdAsync(id);
-        //    if (dagSkabelon == null)
-        //        throw new KeyNotFoundException($"Dagskabelon med id {id} ikke fundet.");
-
-        //    // 2) Sæt RowVersion til det, klienten kom med
-        //    dagSkabelon.RowVersion = originalRowVersion;
-
-        //    // 3) Kald repository og fang concurrency–fejl
-        //    try
-        //    {
-        //        await _dagSkabelonRepository.DeleteAsync(dagSkabelon);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw new(
-        //            $"Dagskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
-        //    }
-        //}
+        
 
 
     }

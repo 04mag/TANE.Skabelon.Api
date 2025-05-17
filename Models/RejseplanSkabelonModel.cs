@@ -4,12 +4,9 @@ namespace TANE.Skabelon.Api.Models
 {
     public class RejseplanSkabelonModel : BaseEntity
     {
-        public string Titel { get; set; }
-        public string Beskrivelse { get; set; }
+        public string Titel { get; set; } = string.Empty;
+        public string Beskrivelse { get; set; } = string.Empty;
         // Relation til ture
-        public List<TurSkabelonModel>? TurSkabeloner { get; set; }
-
-    
-  
+        public List<RejseplanTurSkabelon> RejseplanTurSkabelon { get; set; } = new List<RejseplanTurSkabelon>();
     }
 }

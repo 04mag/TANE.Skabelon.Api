@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TANE.Skabelon.Api.Models;
 using TANE.Skabelon.Api.GenericRepositories;
+using Microsoft.Extensions.Options;
+using TANE.Skabelon.Api.Context;
 
 namespace TANE.Skabelon.Api.Controllers
 {
@@ -12,88 +14,205 @@ namespace TANE.Skabelon.Api.Controllers
     [ApiController]
     public class RejseplanSkabelonController : ControllerBase
     {
-        private readonly IGenericRepository<RejseplanSkabelonModel> _rejseplanSkabelonRepository;
-        private readonly IMapper _mapper;
+        private readonly DbContextOptions<SkabelonDbContext> options;
 
-        public RejseplanSkabelonController(IGenericRepository<RejseplanSkabelonModel> genericRepository, IMapper mapper)
+        public RejseplanSkabelonController(DbContextOptions<SkabelonDbContext> options)
         {
-            _rejseplanSkabelonRepository = genericRepository;
-            _mapper = mapper;
+            this.options = options;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RejseplanSkabelonReadDto>>> GetAll()
+        public async Task<ActionResult<ICollection<RejseplanSkabelonModel>>> GetAll()
         {
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetAllAsync();
-            return Ok(_mapper.Map<IEnumerable<RejseplanSkabelonReadDto>>(rejseplanSkabelon));
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    return Ok(await skabelonDbContext.RejseplanSkabelon.Include(x => x.RejseplanTurSkabelon).ThenInclude(x => x.TurSkabelon).ToListAsync());
+                }
+                catch
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<RejseplanSkabelonReadDto>> GetById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<RejseplanSkabelonModel>> GetById(int id)
         {
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdWithIncludeAsync(id, t => t.TurSkabeloner);
-            if (rejseplanSkabelon == null)
-                return NotFound();
-            return Ok(_mapper.Map<RejseplanSkabelonReadDto>(rejseplanSkabelon));
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    var result = await skabelonDbContext.RejseplanSkabelon.Include(x => x.RejseplanTurSkabelon).ThenInclude(x => x.TurSkabelon).FirstOrDefaultAsync(x => x.Id == id);
+
+                    if (result == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult<RejseplanSkabelonReadDto>> Create(RejseplanSkabelonCreateDto rejseplanSkabelonCreateDto)
+        public async Task<ActionResult<RejseplanSkabelonModel>> Create(RejseplanSkabelonModel rejseplanSkabelonModel)
         {
-            var rejseplanSkabelon = _mapper.Map<RejseplanSkabelonModel>(rejseplanSkabelonCreateDto);
-            await _rejseplanSkabelonRepository.AddAsync(rejseplanSkabelon);
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted))
+                {
+                    try
+                    {
+                        foreach (var rejseTur in rejseplanSkabelonModel.RejseplanTurSkabelon)
+                        {
+                            if (rejseTur.TurSkabelon != null && rejseTur.TurSkabelon.Id > 0)
+                            {
+                                var dagSkabelon = rejseTur.TurSkabelon;
+                                rejseTur.TurSkabelon = null;
+                            }
+                            else if (rejseTur.TurSkabelon != null && rejseTur.TurSkabelon.Id == 0)
+                            {
+                                throw new Exception("TurSkabelon must already exist");
+                            }
 
-            return CreatedAtAction(nameof(GetById), new {id = rejseplanSkabelon.Id},
-                _mapper.Map<RejseplanSkabelonReadDto>(rejseplanSkabelon));
+                            if (rejseTur.RejseplanSkabelon != null)
+                            {
+                                throw new Exception("RejseplanSkabelon must be null");
+                            }
+                        }
+
+                        skabelonDbContext.RejseplanSkabelon.Add(rejseplanSkabelonModel);
+
+                        await skabelonDbContext.SaveChangesAsync();
+
+                        var createdRejseSkabelon = await skabelonDbContext.RejseplanSkabelon
+                                .Include(x => x.RejseplanTurSkabelon)
+                                    .ThenInclude(dt => dt.TurSkabelon)
+                                .FirstOrDefaultAsync(x => x.Id == rejseplanSkabelonModel.Id);
+
+                        contextTransaction.Commit();
+
+                        return CreatedAtAction(nameof(GetById), new { id = rejseplanSkabelonModel.Id }, createdRejseSkabelon);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+                }
+            }
         }
-        
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, RejseplanSkabelonUpdateDto rejseplanSkabelonUpdateDto)
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<RejseplanSkabelonModel>> Update(int id, RejseplanSkabelonModel rejseplanSkabelonModel)
         {
-            if (id != rejseplanSkabelonUpdateDto.Id)
-                return BadRequest();
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                {
 
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
-            if (rejseplanSkabelon == null)
-                return NotFound();
-            var rs = _mapper.Map(rejseplanSkabelonUpdateDto, rejseplanSkabelon);
-            await _rejseplanSkabelonRepository.UpdateAsync(rs);
-            return Ok();
+                    try
+                    {
+                        var existingRejseplanSkabelon = await skabelonDbContext.RejseplanSkabelon.Include(t => t.RejseplanTurSkabelon).ThenInclude(t => t.TurSkabelon).FirstOrDefaultAsync(t => t.Id == id);
+
+                        if (existingRejseplanSkabelon == null)
+                        {
+                            return NotFound();
+                        }
+
+                        if (id != rejseplanSkabelonModel.Id)
+                        {
+                            return BadRequest();
+                        }
+
+                        //Update the existing TurSkabelon properties
+                        existingRejseplanSkabelon.Titel = rejseplanSkabelonModel.Titel;
+                        existingRejseplanSkabelon.Beskrivelse = rejseplanSkabelonModel.Beskrivelse;
+
+                        //For concurrency check
+                        skabelonDbContext.Entry(existingRejseplanSkabelon).Property(p => p.RowVersion).OriginalValue = rejseplanSkabelonModel.RowVersion;
+
+                        // Update order for each DagTurSkabelon  
+                        foreach (var rejseplanTur in rejseplanSkabelonModel.RejseplanTurSkabelon)
+                        {
+                            var existingRejseplanTur = existingRejseplanSkabelon.RejseplanTurSkabelon.FirstOrDefault(d => d.TurSkabelonId == rejseplanTur.TurSkabelonId);
+                            if (existingRejseplanTur != null)
+                            {
+                                existingRejseplanTur.Order = rejseplanTur.Order;
+                                //For concurrency check
+                                skabelonDbContext.Entry(existingRejseplanTur).Property(p => p.RowVersion).OriginalValue = rejseplanTur.RowVersion;
+                            }
+                            else
+                            {
+                                existingRejseplanSkabelon.RejseplanTurSkabelon.Add(new RejseplanTurSkabelon
+                                {
+                                    TurSkabelonId = rejseplanTur.TurSkabelonId,
+                                    Order = rejseplanTur.Order
+                                });
+                            }
+                        }
+
+                        // Remove any DagTurSkabelon that are no longer in the updated model  
+                        existingRejseplanSkabelon.RejseplanTurSkabelon.RemoveAll(d => !rejseplanSkabelonModel.RejseplanTurSkabelon.Any(updated => updated.TurSkabelonId == d.TurSkabelonId));
+
+                        // Save changes to the database
+                        await skabelonDbContext.SaveChangesAsync();
+
+                        var updatedEntity = skabelonDbContext.RejseplanSkabelon
+                            .Include(t => t.RejseplanTurSkabelon)
+                            .ThenInclude(t => t.TurSkabelon)
+                            .AsNoTracking()
+                            .FirstOrDefault();
+
+                        // Commit the transaction
+                        await contextTransaction.CommitAsync();
+
+                        return Ok(existingRejseplanSkabelon);
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        return Conflict("Concurrency conflict occurred while updating the TurSkabelon.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
+                }
+            }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id) 
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
-            if (rejseplanSkabelon == null)
-              {
-                return NotFound();
-}
-            await _rejseplanSkabelonRepository.DeleteAsync(rejseplanSkabelon);
-       
-            return NoContent();
+            using (var skabelonDbContext = new SkabelonDbContext(options))
+            {
+                try
+                {
+                    var rejseSkabelon = await skabelonDbContext.RejseplanSkabelon.FindAsync(id);
+                    if (rejseSkabelon == null)
+                    {
+                        return NotFound();
+                    }
+                    skabelonDbContext.RejseplanSkabelon.Remove(rejseSkabelon);
+                    await skabelonDbContext.SaveChangesAsync();
+                    return NoContent();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+            }
         }
-        //public async Task DeleteRejseplanSkabelonModelAsync(int id, byte[] originalRowVersion)
-        //{
-        //    // 1) Find og tjek eksistens
-        //    var rejseplanSkabelon = await _rejseplanSkabelonRepository.GetByIdAsync(id);
-        //    if (rejseplanSkabelon == null)
-        //        throw new KeyNotFoundException($"Rejseplanskabelon med id {id} ikke fundet.");
-
-        //    // 2) Sæt RowVersion til det, klienten kom med
-        //    rejseplanSkabelon.RowVersion = originalRowVersion;
-
-        //    // 3) Kald repository og fang concurrency–fejl
-        //    try
-        //    {
-        //        await _rejseplanSkabelonRepository.DeleteAsync(rejseplanSkabelon);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw new(
-        //            $"Rejseplanskabelon med id {id} blev enten slettet eller ændret af en anden. Genindlæs og prøv igen.");
-        //    }
-        //}
     }
  }
     

@@ -144,7 +144,7 @@ namespace TANE.Skabelon.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TurSkabelon");
+                    b.ToTable("DagSkabelon");
                 });
 
             modelBuilder.Entity("DagSkabelonModelTurSkabelonModel", b =>
