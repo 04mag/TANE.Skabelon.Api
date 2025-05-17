@@ -66,18 +66,46 @@ namespace TANE.Skabelon.Api.Controllers
         {
             using (var skabelonDbContext = new SkabelonDbContext(options))
             {
-                try
+                using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.ReadUncommitted))
                 {
-                    skabelonDbContext.RejseplanSkabelon.Add(rejseplanSkabelonModel);
+                    try
+                    {
+                        foreach (var rejseTur in rejseplanSkabelonModel.RejseplanTurSkabelon)
+                        {
+                            if (rejseTur.TurSkabelon != null && rejseTur.TurSkabelon.Id > 0)
+                            {
+                                var dagSkabelon = rejseTur.TurSkabelon;
+                                rejseTur.TurSkabelon = null;
+                            }
+                            else if (rejseTur.TurSkabelon != null && rejseTur.TurSkabelon.Id == 0)
+                            {
+                                throw new Exception("TurSkabelon must already exist");
+                            }
 
-                    await skabelonDbContext.SaveChangesAsync();
+                            if (rejseTur.RejseplanSkabelon != null)
+                            {
+                                throw new Exception("RejseplanSkabelon must be null");
+                            }
+                        }
 
-                    return CreatedAtAction(nameof(GetById), new { id = rejseplanSkabelonModel.Id }, rejseplanSkabelonModel);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    return StatusCode(StatusCodes.Status500InternalServerError);
+                        skabelonDbContext.RejseplanSkabelon.Add(rejseplanSkabelonModel);
+
+                        await skabelonDbContext.SaveChangesAsync();
+
+                        var createdRejseSkabelon = await skabelonDbContext.RejseplanSkabelon
+                                .Include(x => x.RejseplanTurSkabelon)
+                                    .ThenInclude(dt => dt.TurSkabelon)
+                                .FirstOrDefaultAsync(x => x.Id == rejseplanSkabelonModel.Id);
+
+                        contextTransaction.Commit();
+
+                        return CreatedAtAction(nameof(GetById), new { id = rejseplanSkabelonModel.Id }, createdRejseSkabelon);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        return StatusCode(StatusCodes.Status500InternalServerError);
+                    }
                 }
             }
         }
