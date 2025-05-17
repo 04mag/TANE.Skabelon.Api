@@ -136,6 +136,9 @@ namespace TANE.Skabelon.Api.Controllers
                         existingRejseplanSkabelon.Titel = rejseplanSkabelonModel.Titel;
                         existingRejseplanSkabelon.Beskrivelse = rejseplanSkabelonModel.Beskrivelse;
 
+                        //For concurrency check
+                        skabelonDbContext.Entry(existingRejseplanSkabelon).Property(p => p.RowVersion).OriginalValue = rejseplanSkabelonModel.RowVersion;
+
                         // Update order for each DagTurSkabelon  
                         foreach (var rejseplanTur in rejseplanSkabelonModel.RejseplanTurSkabelon)
                         {
@@ -159,6 +162,12 @@ namespace TANE.Skabelon.Api.Controllers
 
                         // Save changes to the database
                         await skabelonDbContext.SaveChangesAsync();
+
+                        var updatedEntity = skabelonDbContext.RejseplanSkabelon
+                            .Include(t => t.RejseplanTurSkabelon)
+                            .ThenInclude(t => t.TurSkabelon)
+                            .AsNoTracking()
+                            .FirstOrDefault();
 
                         // Commit the transaction
                         await contextTransaction.CommitAsync();

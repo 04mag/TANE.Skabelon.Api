@@ -90,63 +90,27 @@ namespace TANE.Skabelon.Api.Controllers
             {
                 using (var contextTransaction = skabelonDbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable))
                 {
-                    DagSkabelonModel? existingDagSkabelon = null;
                     try
                     {
-                        existingDagSkabelon = await skabelonDbContext.DagSkabelon.FirstOrDefaultAsync(t => t.Id == id);
+                        skabelonDbContext.Update(dagSkabelonModel);
 
-                        if (existingDagSkabelon == null)
-                        {
-                            return NotFound();
-                        }
+                        await skabelonDbContext.SaveChangesAsync();
 
-                        if (id != dagSkabelonModel.Id)
-                        {
-                            return BadRequest();
-                        }
+                        var updatedEntity = await skabelonDbContext.DagSkabelon.FirstOrDefaultAsync(x => x.Id == id);
 
-                        //Update the existing DagSkabelon properties
-                        existingDagSkabelon.Titel = dagSkabelonModel.Titel;
-                        existingDagSkabelon.Beskrivelse = dagSkabelonModel.Beskrivelse;
-                        
+                        contextTransaction.Commit();
 
-                        // Update order for each DagTurSkabelon  
-                        foreach (var dagTur in dagSkabelonModel.DagTurSkabelon)
-                        {
-                            var existingDagTur = existingDagSkabelon.DagTurSkabelon.FirstOrDefault(d => d.DagSkabelonId == dagTur.DagSkabelonId);
-                            if (existingDagTur != null)
-                            {
-                                existingDagTur.Order = dagTur.Order;
-                            }
-                            else
-                            {
-                                existingDagSkabelon.DagTurSkabelon.Add(new DagTurSkabelon
-                                {
-                                    DagSkabelonId = dagTur.DagSkabelonId,
-                                    Order = dagTur.Order
-                                });
-                            }
-                        }
-
-                        // Remove any DagTurSkabelon that are no longer in the updated model  
-                        existingDagSkabelon.DagTurSkabelon.RemoveAll(d => !dagSkabelonModel.DagTurSkabelon.Any(updated => updated.DagSkabelonId == d.DagSkabelonId));
+                        return Ok(updatedEntity);
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        return Conflict("Concurrency conflict occurred while updating the DagSkabelon.");
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine(ex.Message);
                         return StatusCode(StatusCodes.Status500InternalServerError);
                     }
-
-                    try
-                    {
-                        await skabelonDbContext.SaveChangesAsync();
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        return Conflict("Concurrency conflict occurred while updating the DagSkabelon.");
-                    }
-
-                    return Ok(existingDagSkabelon);
                 }
             }
         }

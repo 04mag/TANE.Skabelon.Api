@@ -14,9 +14,28 @@ namespace TANE.Skabelon.Api.Context
         public DbSet<RejseplanTurSkabelon> RejseplanTurSkabelon { get; set; }
 
 
-        // Delete dagskabelon, hvis den fjernes fra turskabelon
+        // Pseudocode plan:
+        // 1. Identify all entities with a RowVersion property (from BaseEntity or directly defined).
+        // 2. In OnModelCreating, configure the RowVersion property as a concurrency token and as a row version (timestamp).
+        // 3. Use modelBuilder.Entity<T>().Property(e => e.RowVersion).IsRowVersion(); for each entity with RowVersion.
+
+        // Implementation:
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Configure RowVersion as concurrency token for all entities inheriting BaseEntity
+            modelBuilder.Entity<DagSkabelonModel>()
+                .Property(e => e.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<TurSkabelonModel>()
+                .Property(e => e.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<RejseplanSkabelonModel>()
+                .Property(e => e.RowVersion)
+                .IsRowVersion();
+
+            // Existing configuration...
             modelBuilder.Entity<DagTurSkabelon>()
                 .HasKey(ps => new { ps.DagSkabelonId, ps.TurSkabelonId });
 

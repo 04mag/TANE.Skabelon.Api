@@ -139,6 +139,10 @@ namespace TANE.Skabelon.Api.Controllers
                         existingTurSkabelon.Beskrivelse = turSkabelonModel.Beskrivelse;
                         existingTurSkabelon.Pris = turSkabelonModel.Pris;
 
+                        //For concurrency check
+                        skabelonDbContext.Entry(existingTurSkabelon).Property(p => p.RowVersion).OriginalValue = turSkabelonModel.RowVersion;
+
+
                         // Update order for each DagTurSkabelon  
                         foreach (var dagTur in turSkabelonModel.DagTurSkabelon)
                         {
@@ -163,10 +167,16 @@ namespace TANE.Skabelon.Api.Controllers
                         // Save changes to the database
                         await skabelonDbContext.SaveChangesAsync();
 
+                        var updatedEntity = skabelonDbContext.TurSkabelon
+                            .Include(t => t.DagTurSkabelon)
+                            .ThenInclude(t => t.DagSkabelon)
+                            .AsNoTracking()
+                            .FirstOrDefault();
+
                         // Commit the transaction
                         await contextTransaction.CommitAsync();
 
-                        return Ok(existingTurSkabelon);
+                        return Ok(updatedEntity);
                     }
                     catch (DbUpdateConcurrencyException)
                     {
