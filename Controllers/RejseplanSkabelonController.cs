@@ -178,7 +178,7 @@ namespace TANE.Skabelon.Api.Controllers
                     }
                     catch (DbUpdateConcurrencyException)
                     {
-                        return Conflict("Concurrency conflict occurred while updating the TurSkabelon.");
+                        return Conflict("Concurrency conflict occurred while updating rejseplan skabelon.");
                     }
                     catch (Exception ex)
                     {
